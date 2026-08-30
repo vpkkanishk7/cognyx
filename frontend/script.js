@@ -35,7 +35,11 @@ const State = {
   }
 };
 
-const API_BASE = "http://127.0.0.1:3005/api";
+// Auto-detect API base: relative path on Vercel/production, explicit localhost for local dev
+const API_BASE = (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost')
+  ? `http://${window.location.hostname}:3005/api`
+  : `${window.location.origin}/api`;
+
 
 async function apiFetch(endpoint, options = {}) {
   const headers = { ...options.headers };

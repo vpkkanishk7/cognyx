@@ -1,7 +1,14 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 
-const dbPath = path.resolve(__dirname, 'database.sqlite');
+// Vercel serverless: only /tmp is writable. Use it in production.
+// Locally: use the backend directory as usual.
+const IS_VERCEL = !!process.env.VERCEL;
+const dbPath = IS_VERCEL
+  ? '/tmp/cognyx_database.sqlite'
+  : path.resolve(__dirname, 'database.sqlite');
+
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Error opening database:', err.message);

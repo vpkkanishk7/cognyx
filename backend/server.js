@@ -14,13 +14,19 @@ if (!process.env.JWT_SECRET && process.env.NODE_ENV !== 'test') {
   process.exit(1);
 }
 
+const IS_VERCEL = !!process.env.VERCEL;
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 const { exec } = require('child_process');
 
 // Middleware
-app.use(cors({ origin: [process.env.FRONTEND_URL || 'http://127.0.0.1:3005', 'http://localhost:3005', 'http://localhost:5500', 'http://127.0.0.1:5500', 'null'] }));
+// On Vercel, allow all origins (the app IS the backend — same domain)
+const allowedOrigins = IS_VERCEL
+  ? true
+  : [process.env.FRONTEND_URL || 'http://127.0.0.1:3005', 'http://localhost:3005', 'http://localhost:5500', 'http://127.0.0.1:5500', 'null'];
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'frontend'), {
   setHeaders: (res, path) => {
@@ -212,10 +218,14 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
 });
 
-// Start Server
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server listening on port ${PORT}`);
-});
+// Start Server — only in non-serverless (local/traditional hosting) environments
+// Vercel invokes the exported `app` directly as a serverless function
+if (!IS_VERCEL) {
+  const PORT = process.env.PORT || 3005;
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server listening on port ${PORT}`);
+  });
+}
 
-// Ensure event loop stays alive
-setInterval(() => {}, 1000 * 60 * 60);
+// Export for Vercel serverless handler
+module.exports = app;
