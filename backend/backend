@@ -1,0 +1,12 @@
+const { AssessmentEngine } = require("./utils/assessmentEngine");
+
+(async () => {
+    const engine = new AssessmentEngine("TestUser");
+    let response = await engine.processUserResponse("[SYSTEM_INIT]");
+    console.log("AI:", response.text);
+    
+    response = await engine.processUserResponse("I am doing okay. I'm 45 years old.");
+    console.log("\nAI:", response.text);
+    console.log("Concept:", response.currentConcept);
+    console.log("Answers:", engine.userAnswers);
+})();

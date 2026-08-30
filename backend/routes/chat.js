@@ -1,0 +1,53 @@
+const express = require('express');
+const Groq = require('groq-sdk');
+const authMiddleware = require('../middleware/auth');
+const { AssessmentEngine } = require('../utils/assessmentEngine');
+
+const router = express.Router();
+const sessions = {};
+
+function getSession(username) {
+  if (!sessions[username]) {
+    sessions[username] = new AssessmentEngine(username);
+  }
+  return sessions[username];
+}
+
+router.post('/chat/reset', authMiddleware, (req, res) => {
+  const username = req.user.username;
+  sessions[username] = new AssessmentEngine(username);
+  res.json({ success: true, message: "Assessment state reset." });
+});
+
+router.post('/chat', authMiddleware, async (req, res) => {
+  const { message, responseTimeMs, inputMethod } = req.body;
+  const username = req.user.username;
+  
+  if (!message) return res.status(400).json({ error: 'Message is required' });
+
+  let session = getSession(username);
+  
+  try {
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const replyObj = await session.processUserMessage(groq, message, responseTimeMs, inputMethod || "text");
+    
+    res.json({ 
+      ...replyObj, 
+      detected_age: session.age ? parseInt(session.age, 10) : null,
+      detected_age_band: session.ageBand || null,
+      analysis_source: "groq" 
+    });
+  } catch (err) {
+    console.error("Chat API Error:", err.message);
+    res.json({ 
+      type: "question", 
+      acknowledgement: null, 
+      question: "I'm having trouble connecting right now. Can you repeat that?", 
+      detected_age: session.age ? parseInt(session.age, 10) : null,
+      detected_age_band: session.ageBand || null,
+      analysis_source: "fallback" 
+    });
+  }
+});
+
+module.exports = router;

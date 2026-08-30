@@ -1,0 +1,97 @@
+// Game 2
+  let memorySelectionTimerInterval = null;
+
+  document.getElementById("memory-start-btn").addEventListener("click", (e) => {
+    e.target.classList.add("hidden");
+    const words = [
+      "ALGORITHM", "NEURON", "SYNAPSE", "ORBIT", "QUANTUM", "GRAVITY", "ECLIPSE", "HORIZON",
+      "PULSAR", "GALAXY", "NUCLEUS", "PROTON", "ISOTOPE", "SPECTRUM", "VELOCITY", "MOMENTUM",
+      "FRACTAL", "MATRIX", "VECTOR", "TENSOR", "KINETIC", "THERMAL", "PHOTON", "PLASMA",
+      "VORTEX", "NEBULA", "QUASAR", "BOSON", "ENTROPY", "ENIGMA"
+    ].sort(() => 0.5 - Math.random());
+    State.memoryGame.targetWords = words.slice(0, 5);
+    document.getElementById("memory-word-showcase").textContent = State.memoryGame.targetWords.join(" - ");
+    
+    let timerEl = document.getElementById("memory-game-timer-text");
+    if (!timerEl) {
+      timerEl = document.createElement("p");
+      timerEl.id = "memory-game-timer-text";
+      timerEl.className = "subtitle";
+      timerEl.style.color = "#ef4444";
+      timerEl.style.fontWeight = "bold";
+      timerEl.style.fontSize = "1.2rem";
+      const gridArea = document.getElementById("memory-grid-area");
+      gridArea.insertBefore(timerEl, document.getElementById("memory-grid-container"));
+    }
+    timerEl.textContent = "";
+
+    State.memoryGame.selectedWords = [];
+    document.getElementById("memory-submit-btn").disabled = false;
+    document.getElementById("memory-submit-btn").textContent = "Submit Recall Vector";
+
+    let timeLeft = 7;
+    const timer = setInterval(() => {
+      timeLeft--;
+      document.getElementById("memory-timer-text").textContent = "Memorize this (" + timeLeft + "s)";
+      if (timeLeft <= 0) {
+        clearInterval(timer);
+        document.getElementById("memory-display-area").classList.add("hidden");
+        document.getElementById("memory-grid-area").classList.remove("hidden");
+        document.getElementById("memory-grid-container").innerHTML = words.sort(() => 0.5 - Math.random()).map(w => 
+          "<button class=\"memory-btn\" data-word=\"" + w + "\">" + w + "</button>").join("");
+        
+        startMemorySelectionTimer();
+      }
+    }, 1000);
+  });
+
+  function startMemorySelectionTimer() {
+    if (memorySelectionTimerInterval) clearInterval(memorySelectionTimerInterval);
+    let selectTimeLeft = 40;
+    const timerEl = document.getElementById("memory-game-timer-text");
+    timerEl.textContent = "Time remaining: 40s";
+    
+    memorySelectionTimerInterval = setInterval(() => {
+      selectTimeLeft--;
+      timerEl.textContent = "Time remaining: " + selectTimeLeft + "s";
+      if (selectTimeLeft <= 0) {
+        clearInterval(memorySelectionTimerInterval);
+        memorySelectionTimerInterval = null;
+        timerEl.textContent = "Time's up!";
+        submitMemoryGame();
+      }
+    }, 1000);
+  }
+
+  function submitMemoryGame() {
+    if (memorySelectionTimerInterval) {
+      clearInterval(memorySelectionTimerInterval);
+      memorySelectionTimerInterval = null;
+    }
+    let correctCount = State.memoryGame.selectedWords.filter(w => State.memoryGame.targetWords.includes(w)).length;
+    State.biomarkers.memoryScore = Math.round((correctCount / 5) * 100);
+    const btn = document.getElementById("memory-submit-btn");
+    btn.disabled = true; 
+    btn.textContent = "Score: " + State.biomarkers.memoryScore + "%";
+    setTimeout(() => returnToChat(2), 1500);
+  }
+
+  document.getElementById("memory-grid-container").addEventListener("click", (e) => {
+    if (document.getElementById("memory-submit-btn").disabled) return;
+
+    if (e.target.matches(".memory-btn")) {
+      const btn = e.target, word = btn.dataset.word;
+      if (btn.classList.contains("selected")) {
+        btn.classList.remove("selected"); 
+        State.memoryGame.selectedWords = State.memoryGame.selectedWords.filter(w => w !== word);
+      } else if (State.memoryGame.selectedWords.length < 5) {
+        btn.classList.add("selected"); 
+        State.memoryGame.selectedWords.push(word);
+      }
+    }
+  });
+
+  document.getElementById("memory-submit-btn").addEventListener("click", (e) => {
+    if (e.target.disabled) return;
+    submitMemoryGame();
+  });

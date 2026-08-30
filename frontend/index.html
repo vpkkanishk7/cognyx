@@ -1,0 +1,996 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>COGNYX — Clinical-Grade Cognitive Passport & Digital Phenotyping</title>
+
+  <!-- Design System Fonts (Awaken Studio Typography) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Syne:wght@600;700;800&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+
+  <!-- Client-side Computer Vision Engine -->
+  <script src="webgazer.js"></script>
+</head>
+
+<body>
+
+  <!-- Studio Top Navigation -->
+  <header class="studio-nav">
+    <div class="brand-wrapper">
+      <div class="brand-logo" onclick="window.location.reload()">
+        <div class="brand-icon">CX</div>
+        <div class="brand-title">COGNYX</div>
+      </div>
+      <span class="brand-tag">Clinical Engine v2.4</span>
+    </div>
+
+    <div class="nav-status">
+      <div class="system-beacon">
+        <span class="beacon-dot"></span>
+        <span>Telemetry Active</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Live Video Feed Viewport (Outside auth view) -->
+  <video id="live-video-feed" class="hidden" autoplay muted playsinline></video>
+
+  <!-- Main Application Wrapper -->
+  <main class="app-container" style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; overflow:hidden;">
+
+    <!-- Picture in Picture Video Feed (Global) -->
+    <div id="video-container" class="video-feed hidden">
+      <video id="user-video" autoplay muted playsinline></video>
+      <div class="recording-indicator hidden" id="rec-dot"></div>
+    </div>
+
+    <!-- VIEW 1: AUTHENTICATION -->
+    <section id="auth-view" class="glass-panel">
+      <div class="index-tag">(01) / Clinical Access</div>
+      <h1>COGNYX</h1>
+      <p class="subtitle" id="auth-subtitle">Precision Digital Phenotyping & Cognitive Assessment Engine</p>
+
+      <!-- Trust badges -->
+      <div style="display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; justify-content: center;">
+        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: 9999px; font-family: var(--font-mono); font-size: 0.62rem; color: #34d399; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">
+          <i data-feather="shield" style="width: 11px; height: 11px;"></i> Encrypted Session
+        </span>
+        <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.15); border-radius: 9999px; font-family: var(--font-mono); font-size: 0.62rem; color: var(--primary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">
+          <i data-feather="cpu" style="width: 11px; height: 11px;"></i> AI-Powered Analysis
+        </span>
+      </div>
+
+      <div class="auth-tabs">
+        <button id="toggle-login" class="active">Log In</button>
+        <button id="toggle-signup">Sign Up</button>
+      </div>
+
+      <div class="input-group">
+        <label for="auth-username">Subject ID or Username</label>
+        <input type="text" id="auth-username" placeholder="e.g. PATIENT_8849" autocomplete="username" />
+      </div>
+
+      <div class="input-group">
+        <label for="auth-password">Security Credentials</label>
+        <input type="password" id="auth-password" placeholder="••••••••••••" autocomplete="current-password" />
+      </div>
+
+      <button id="auth-btn" class="btn-primary" style="margin-top: 12px;">
+        <span>Authenticate Session</span>
+        <i data-feather="arrow-right" style="width: 18px; height: 18px;"></i>
+      </button>
+
+      <p id="auth-error"
+        style="color: var(--danger); margin-top: 18px; font-size: 0.88rem; text-align: center; min-height: 22px; font-family: var(--font-mono);">
+      </p>
+    </section>
+
+    <!-- VIEW 2: DASHBOARD -->
+    <section id="dashboard-view" class="glass-panel hidden">
+      <div class="index-tag">(02) / Subject Overview</div>
+      <h1>Dashboard</h1>
+      <p class="subtitle">Session authenticated for subject <span id="dash-username"
+          style="color: var(--primary); font-weight: 700;"></span>.</p>
+
+      <div class="dashboard-grid">
+        <div class="dash-card" id="btn-new-test">
+          <div>
+            <div class="card-index">
+              <span>(01) / INITIATE</span>
+              <i data-feather="arrow-up-right" class="card-arrow" style="width: 20px; height: 20px;"></i>
+            </div>
+            <i data-feather="activity"
+              style="width: 32px; height: 32px; color: var(--primary); margin-bottom: 16px;"></i>
+            <h3>New Assessment</h3>
+            <p>Launch a full digital phenotyping battery including interview, reflex, working memory, geometric patterns, and visuospatial CDT.</p>
+          </div>
+        </div>
+
+        <div class="dash-card" id="btn-latest-report">
+          <div>
+            <div class="card-index">
+              <span>(02) / PASSPORT</span>
+              <i data-feather="arrow-up-right" class="card-arrow" style="width: 20px; height: 20px;"></i>
+            </div>
+            <i data-feather="award"
+              style="width: 32px; height: 32px; color: var(--primary); margin-bottom: 16px;"></i>
+            <h3>View Latest Report</h3>
+            <p>Access your latest completed Cognitive Vitality Passport, domain radar charts, and PDF download.</p>
+          </div>
+        </div>
+
+        <div class="dash-card" id="btn-history">
+          <div>
+            <div class="card-index">
+              <span>(03) / ARCHIVE</span>
+              <i data-feather="arrow-up-right" class="card-arrow" style="width: 20px; height: 20px;"></i>
+            </div>
+            <i data-feather="file-text"
+              style="width: 32px; height: 32px; color: var(--primary); margin-bottom: 16px;"></i>
+            <h3>Track History</h3>
+            <p>Access longitudinal records, historical pattern scores, and multi-session biometric progressions.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top: 24px; text-align: right;">
+        <button id="logout-btn" class="btn-secondary" style="width: auto; padding: 8px 18px; font-size: 0.82rem;">
+          <i data-feather="log-out" style="width: 14px; height: 14px;"></i>
+          <span>Log Out</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- VIEW 3: HISTORY LIST -->
+    <section id="history-view" class="glass-panel report-panel hidden">
+      <div
+        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
+        <div>
+          <div class="index-tag">(03) / Clinical Archive</div>
+          <h2>Assessment Records</h2>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0;">Historical phenotyping telemetry and longitudinal session results.</p>
+        </div>
+        <button id="history-back-btn" class="btn-secondary" style="width: auto; padding: 10px 20px;">
+          <i data-feather="arrow-left" style="width: 16px; height: 16px;"></i>
+          <span>Return to Dashboard</span>
+        </button>
+      </div>
+
+      <div class="history-table-container" style="max-height: 420px; overflow-y: auto;">
+        <table class="history-table" style="width: 100%;">
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Cognitive Vitality</th>
+              <th>Pattern Match</th>
+              <th>Memory Score</th>
+              <th>Visuospatial Clock</th>
+            </tr>
+          </thead>
+          <tbody id="history-tbody">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- VIEW 4: MODALITY SELECTION -->
+    <section id="modality-view" class="glass-panel report-panel hidden">
+      <div class="index-tag">(04) / Telemetry Setup</div>
+      <h2>Select Assessment Modality</h2>
+      <p class="subtitle">Select the telemetry depth for your digital phenotyping session. Video analysis captures gaze
+        stability, motor tremors, and facial affect.</p>
+
+      <div class="modality-grid">
+        <div class="dash-card modality-btn" data-mode="text">
+          <div class="card-index">(01)</div>
+          <i data-feather="message-square"
+            style="width: 28px; height: 28px; color: var(--text-secondary); margin-bottom: 14px;"></i>
+          <h3>Text Only</h3>
+          <p style="font-size: 0.8rem; margin-top: 6px;">Conversational interview & interactive cognitive test battery.
+          </p>
+        </div>
+
+        <div class="dash-card modality-btn" data-mode="voice">
+          <div class="card-index">(02)</div>
+          <i data-feather="mic"
+            style="width: 28px; height: 28px; color: var(--text-secondary); margin-bottom: 14px;"></i>
+          <h3>Voice + Text</h3>
+          <p style="font-size: 0.8rem; margin-top: 6px;">Acoustic prosody analysis with speech-to-text interview.</p>
+        </div>
+
+        <div class="dash-card modality-btn recommended" data-mode="video">
+          <span class="modality-pill">Recommended</span>
+          <div class="card-index">(03)</div>
+          <i data-feather="video" style="width: 28px; height: 28px; color: var(--primary); margin-bottom: 14px;"></i>
+          <h3>Full Video + Voice</h3>
+          <p style="font-size: 0.8rem; margin-top: 6px;">Complete digital phenotyping with WebGazer eye-tracking &
+            affect AI.</p>
+        </div>
+      </div>
+
+      <p id="modality-error"
+        style="color: var(--danger); margin-top: 18px; font-size: 0.88rem; text-align: center; min-height: 22px; font-family: var(--font-mono);">
+      </p>
+    </section>
+
+    <!-- VIEW 5: CHATBOT INTERVIEW -->
+    <section id="chat-view" class="glass-panel report-panel hidden" style="padding: 32px;">
+
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-subtle);">
+        <div>
+          <div class="index-tag">(05) / Phase 1</div>
+          <h2 style="margin: 0; font-size: 1.35rem;">Clinical Diagnostic Interview</h2>
+        </div>
+      </div>
+
+      <div class="chat-container">
+        <div class="chat-history" id="chat-history"></div>
+        <!-- Typing indicator (hidden by default, shown by JS) -->
+        <div id="typing-indicator" class="typing-indicator hidden" style="margin: 0 24px 8px 24px;">
+          <span></span><span></span><span></span>
+        </div>
+        <div class="chat-input-area">
+          <input type="text" id="chat-input" placeholder="Type your response to the clinician..." autocomplete="off" />
+          <button id="mic-btn" class="hidden" title="Voice Input" style="background: transparent; border: 1px solid var(--border-medium); color: var(--text-secondary);">
+            <i data-feather="mic" style="width: 18px; height: 18px;"></i>
+          </button>
+          <button id="chat-send-btn" title="Send Response">
+            <i data-feather="send" style="width: 18px; height: 18px;"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- VIEW: MEMORY REGISTRATION -->
+    <section id="memory-reg-view" class="glass-panel report-panel hidden" style="text-align: center; padding: 40px;">
+      <h2 style="margin-bottom: 20px; font-family: 'Outfit', sans-serif;">Memory Task</h2>
+      <p style="font-size: 1.2rem; margin-bottom: 30px; color: var(--text-muted);">Please remember these three words. I
+        will ask you to recall them later.</p>
+      <div
+        style="font-size: 2.5rem; font-weight: bold; color: var(--primary); letter-spacing: 2px; margin-bottom: 40px; line-height: 1.5;">
+        <div id="memory-reg-words">APPLE<br>TABLE<br>PENNY</div>
+      </div>
+      <button class="primary-btn pulse" id="memory-reg-next-btn">I have memorized them</button>
+    </section>
+
+    <!-- VIEW: MEMORY RECALL -->
+    <section id="memory-recall-view" class="glass-panel report-panel hidden" style="text-align: center; padding: 40px;">
+      <h2 id="memory-recall-title" style="margin-bottom: 20px; font-family: 'Outfit', sans-serif;">Immediate Recall</h2>
+      <p id="memory-recall-instruction" style="font-size: 1.2rem; margin-bottom: 30px; color: var(--text-muted);">Type
+        the three words you were asked to remember. Order does not matter.</p>
+      <input type="text" id="memory-recall-input" class="cyber-input"
+        style="width: 80%; max-width: 400px; font-size: 1.2rem; text-align: center; margin-bottom: 30px; padding: 15px;"
+        placeholder="Type words here..." autocomplete="off">
+      <br>
+      <button class="primary-btn" id="memory-recall-submit-btn">Submit</button>
+    </section>
+
+    <!-- VIEW 6: COGNITIVE GAMES -->
+    <section id="game-view" class="glass-panel report-panel hidden">
+
+      <!-- Stage Countdown Overlay -->
+      <div id="chat-countdown" class="hidden"
+        style="font-size: 4.5rem; font-family: var(--font-display); font-weight: 800; color: var(--primary); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-shadow: 0 0 30px var(--primary-glow); z-index: 100;">
+      </div>
+
+      <!-- Game 1: Reaction Time -->
+      <div id="game-1-container" class="game-container hidden">
+        <div class="index-tag">(06-A) / Biomarker Test 1</div>
+        <h2>Oculomotor Reflex & Latency</h2>
+        <p class="subtitle">Click or tap the box the exact moment it transitions to vibrant green.</p>
+        <div class="activity-intro-box" id="reaction-intro-box">
+          <h3>Test Instructions</h3>
+          <p>This test measures your sensorimotor response speed and visual reaction latency.</p>
+          <ul>
+            <li>Click the box once to arm the test.</li>
+            <li>When the color turns <strong>GREEN</strong>, click or tap as quickly as possible.</li>
+            <li>You will complete 3 consecutive trials to establish your median latency.</li>
+          </ul>
+        </div>
+        <div id="reaction-btn" class="reaction-box idle">Click to Start</div>
+      </div>
+
+      <!-- Game 2: Working Memory -->
+      <div id="game-2-container" class="game-container hidden">
+        <div class="index-tag">(06-B) / Biomarker Test 2</div>
+        <h2>Working Memory Recall Assessment</h2>
+
+        <div id="memory-display-area" style="text-align: center; width: 100%;">
+          <div class="activity-intro-box">
+            <h3>Test Instructions</h3>
+            <p>You will be shown <strong>5 target words</strong> for 7 seconds. Memorize as many as you can, then pick them from a randomized grid.</p>
+          </div>
+          <p class="subtitle" id="memory-timer-text">Click initiate when ready to memorize the target lexical items.</p>
+          <button id="memory-start-btn" class="btn-primary" style="width: auto; margin: 0 auto;">
+            <i data-feather="play" style="width: 16px; height: 16px;"></i>
+            <span>Initiate Sequence (7s)</span>
+          </button>
+          <div id="memory-word-showcase" class="memory-showcase-grid"></div>
+        </div>
+
+        <div id="memory-grid-area" class="hidden" style="width: 100%; text-align: center;">
+          <p class="subtitle">Select the 5 words shown during the memorization sequence:</p>
+          <div class="selection-counter-badge" id="memory-counter-badge">
+            <i data-feather="check-square" style="width: 16px; height: 16px;"></i>
+            <span>Selected: <strong id="memory-counter-num">0</strong> / 5 words</span>
+          </div>
+          <div class="memory-grid" id="memory-grid-container"></div>
+          <button id="memory-submit-btn" class="btn-primary" style="margin-top: 28px; width: 100%; max-width: 320px;">
+            <span>Submit Recall Vector</span>
+            <i data-feather="check-circle" style="width: 18px; height: 18px;"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Game 3: Visuospatial Clock Drawing -->
+      <div id="game-3-container" class="game-container hidden">
+        <div class="index-tag">(06-C) / Biomarker Test 3</div>
+        <h2>Visuospatial Clock Drawing (CDT)</h2>
+        <p class="subtitle">Draw the clock face, insert numbers 1–12, and place the hands to indicate
+          <strong>11:10</strong>.</p>
+        
+        <div class="activity-intro-box" style="margin-bottom: 12px;">
+          <p style="margin: 0;">Draw clearly inside the circle: all numbers 1 through 12, an hour hand pointing to 11, and a longer minute hand pointing to 2 (10 minutes past).</p>
+        </div>
+
+        <canvas id="clock-canvas" width="320" height="320"></canvas>
+
+        <div style="display: flex; gap: 14px; width: 100%; max-width: 340px; margin-top: 8px;">
+          <button id="clock-clear-btn" class="btn-secondary" style="flex: 1;">
+            <i data-feather="refresh-cw" style="width: 16px; height: 16px;"></i>
+            <span>Clear Canvas</span>
+          </button>
+          <button id="clock-submit-btn" class="btn-primary" style="flex: 2;">
+            <span>Analyze Clock AI</span>
+            <i data-feather="arrow-right" style="width: 16px; height: 16px;"></i>
+          </button>
+        </div>
+      </div>
+    <!-- Game 4: Pattern Matching (Upgraded Suite) -->
+    <div id="game-4-container" class="game-container hidden">
+      <div class="index-tag">(06-D) / Biomarker Test 4</div>
+      <h2 style="margin-bottom: 6px;">Matrix & Sequence Pattern Recognition</h2>
+      <p class="subtitle" style="margin-bottom: 20px;">Analyze the geometric transformation and select the shape that logically completes the pattern.</p>
+
+      <div class="pattern-wrapper">
+        <div class="pattern-meta-bar">
+          <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <span class="pattern-pill" id="pattern-q-badge">Question 1 of 12</span>
+            <span class="pattern-pill difficulty" id="pattern-diff-badge">Level: Sequences</span>
+          </div>
+          <div style="display: flex; gap: 14px; align-items: center;">
+            <span style="color: var(--text-secondary);" id="pattern-acc-text">Accuracy: 100%</span>
+            <span style="color: var(--text-muted); font-size: 0.75rem;" id="pattern-timer-text">0.0s</span>
+          </div>
+          <div class="pattern-progress-container">
+            <div class="pattern-progress-bar" id="pattern-progress-bar" style="width: 8%;"></div>
+          </div>
+        </div>
+
+        <div class="pattern-stage-card">
+          <p id="pattern-instruction-text" style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; font-family: var(--font-mono); text-align: center;">Identify the sequence rule:</p>
+          <div id="pattern-display" class="pattern-sequence-grid">
+            <!-- Patterns inserted dynamically via JS -->
+          </div>
+        </div>
+
+        <div style="width: 100%; text-align: center; margin-top: 4px;">
+          <p style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; font-family: var(--font-mono); margin-bottom: 10px;">Select Target Solution (1–4)</p>
+          <div id="pattern-options" class="pattern-options-grid">
+            <!-- Options inserted dynamically via JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+    <!-- VIEW 8: PROCESSING -->
+    <section id="processing-view" class="glass-panel hidden" style="text-align: left; max-width: 620px; margin: 40px auto; padding: 44px;">
+      <div class="index-tag">(07) / Synthesis Engine</div>
+      <h2 style="margin-top: 4px; font-size: 1.8rem; color: var(--text-main); margin-bottom: 8px;">Preparing Cognitive Report</h2>
+      <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 28px; line-height: 1.55;">Organizing multimodal biomarkers, scoring algorithmic vectors, and synthesizing clinical narrative.</p>
+
+      <!-- Progress bar -->
+      <div style="width: 100%; height: 3px; background: var(--border-subtle); border-radius: 9999px; overflow: hidden; margin-bottom: 28px;">
+        <div id="processing-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--primary), #8b5cf6); border-radius: 9999px; transition: width 0.6s ease;"></div>
+      </div>
+      
+      <div id="processing-steps-container" style="display: flex; flex-direction: column; gap: 18px;">
+        <!-- Step 1 -->
+        <div class="proc-step" id="proc-step-1" style="display: flex; gap: 14px; align-items: flex-start; opacity: 1;">
+          <i data-feather="check-circle" style="color: #10b981; min-width: 22px;"></i>
+          <div>
+            <h4 style="margin: 0; font-size: 0.95rem; color: var(--text-main);">Assessment battery completed</h4>
+            <p style="margin: 3px 0 0; font-size: 0.82rem; color: var(--text-secondary);">All conversational and cognitive tasks finished.</p>
+          </div>
+        </div>
+        
+        <!-- Step 2 -->
+        <div class="proc-step" id="proc-step-2" style="display: flex; gap: 14px; align-items: flex-start; opacity: 0.4;">
+          <i data-feather="loader" class="spin" style="color: #0284c7; min-width: 22px;"></i>
+          <div>
+            <h4 style="margin: 0; font-size: 0.95rem; color: var(--text-main);">Aggregating digital biomarkers</h4>
+            <p style="margin: 3px 0 0; font-size: 0.82rem; color: var(--text-secondary);">Structuring reflex latency, working memory, and pattern accuracy.</p>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="proc-step" id="proc-step-3" style="display: flex; gap: 14px; align-items: flex-start; opacity: 0.4;">
+          <i data-feather="circle" style="color: #94a3b8; min-width: 22px;"></i>
+          <div>
+            <h4 style="margin: 0; font-size: 0.95rem; color: var(--text-main);">Machine Learning risk classification</h4>
+            <p style="margin: 3px 0 0; font-size: 0.82rem; color: var(--text-secondary);">Executing calibrated Random Forest cognitive phenotyping.</p>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="proc-step" id="proc-step-4" style="display: flex; gap: 14px; align-items: flex-start; opacity: 0.4;">
+          <i data-feather="circle" style="color: #94a3b8; min-width: 22px;"></i>
+          <div>
+            <h4 style="margin: 0; font-size: 0.95rem; color: var(--text-main);">Generating multimodal AI synthesis</h4>
+            <p style="margin: 3px 0 0; font-size: 0.82rem; color: var(--text-secondary);">Structuring domain analysis, visual analytics, and insights.</p>
+          </div>
+        </div>
+
+        <!-- Step 5 -->
+        <div class="proc-step" id="proc-step-5" style="display: flex; gap: 14px; align-items: flex-start; opacity: 0.4;">
+          <i data-feather="circle" style="color: #94a3b8; min-width: 22px;"></i>
+          <div>
+            <h4 style="margin: 0; font-size: 0.95rem; color: var(--text-main);">Cognitive Passport finalized</h4>
+            <p style="margin: 3px 0 0; font-size: 0.82rem; color: var(--text-secondary);">Report ready for presentation and PDF export.</p>
+          </div>
+        </div>
+      </div>
+
+      <div id="processing-error-box" class="hidden" style="margin-top: 24px; padding: 18px; border-radius: var(--radius-md); background: rgba(244, 63, 94, 0.1); border: 1px solid var(--danger);">
+        <h4 style="margin: 0 0 8px 0; color: var(--danger);">Processing encountered a delay</h4>
+        <p style="margin: 0 0 12px 0; font-size: 0.85rem; color: var(--text-secondary);">Telemetry data was preserved. Click below to re-render the final report.</p>
+        <button id="retry-processing-btn" class="btn-primary" style="background: var(--danger); border: none; padding: 10px 20px; font-size: 0.88rem;">Retry Report Synthesis</button>
+      </div>
+    </section>
+
+    <!-- VIEW 7: COMPLETE COGNITIVE WELLNESS REPORT -->
+    <section id="report-view" class="glass-panel report-panel hidden" style="max-width: 900px; width: 100%;">
+      <div class="report-content clinical-report" id="report-content-pdf" style="text-align: left; background: #ffffff; color: #0f172a; padding: 36px 32px; border-radius: 12px;">
+
+        <!-- Clinical Header -->
+        <div class="clinical-header" style="margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #0284c7; padding-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+          <div class="clinical-logo" style="display: flex; gap: 12px; align-items: center;">
+            <i data-feather="shield" style="width: 36px; height: 36px; color: #0284c7; stroke-width: 2.2px;"></i>
+            <div>
+              <h1 style="color: #0f172a; margin: 0; font-size: 1.7rem; font-weight: 800; letter-spacing: 0.5px;">COGNYX</h1>
+              <p style="margin: 0; font-size: 0.78rem; color: #64748b; font-weight: 600; font-family: var(--font-mono); text-transform: uppercase;">Digital Cognitive Phenotyping & Wellness Passport</p>
+            </div>
+          </div>
+          <div style="text-align: right; font-family: var(--font-mono); font-size: 0.76rem; color: #475569;">
+            <p style="margin: 0; font-weight: 700; color: #0284c7;">VALIDATED COGNITIVE BATTERY</p>
+            <p style="margin: 2px 0 0 0;">CLINICAL SPECIFICATION v2.4 GA</p>
+          </div>
+        </div>
+
+        <!-- Subject Info Bar -->
+        <div class="subject-info-box pdf-page-break-avoid" style="display: flex; justify-content: space-between; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px 20px; margin-bottom: 24px; font-family: var(--font-mono); flex-wrap: wrap; gap: 12px;">
+          <div>
+            <span style="font-size: 0.68rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Subject Identification</span>
+            <div id="rep-subject" style="font-size: 1.2rem; font-weight: 700; color: #0f172a; margin-top: 2px;">--</div>
+          </div>
+          <div>
+            <span style="font-size: 0.68rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Demographics & Age Category</span>
+            <div id="rep-subject-age-badge" style="font-size: 1.05rem; font-weight: 700; color: #0284c7; margin-top: 2px;">
+              Age <span id="rep-subject-age">68</span> yrs • <span id="rep-subject-age-category">51–70 years</span>
+            </div>
+          </div>
+          <div>
+            <span style="font-size: 0.68rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Assessment Modality</span>
+            <div id="rep-modality-badge" style="font-size: 1.05rem; font-weight: 600; color: #0284c7; margin-top: 2px;">Text Only</div>
+          </div>
+          <div style="text-align: right;">
+            <span style="font-size: 0.68rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Timestamp & Duration</span>
+            <div id="rep-date" style="font-size: 0.95rem; font-weight: 600; color: #0f172a; margin-top: 2px;">--</div>
+            <div style="font-size: 0.76rem; color: #64748b;">Duration: <strong id="rep-session-duration" style="color: #0f172a;">03:15</strong></div>
+          </div>
+        </div>
+
+        <!-- HERO OVERALL COGNITIVE SCORE CARD -->
+        <div class="pdf-page-break-avoid" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1.5px solid #bae6fd; border-radius: 12px; padding: 24px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
+          <div>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #0369a1; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em;">Composite Cognitive Vitality Index</span>
+            <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 6px;">
+              <span id="rep-overall-score" style="font-size: 3.2rem; font-weight: 800; color: #0284c7; line-height: 1; font-family: var(--font-display);">--</span>
+              <span style="font-size: 1.3rem; font-weight: 700; color: #64748b;">/ 100</span>
+            </div>
+            <p id="rep-overall-status-text" style="font-size: 0.88rem; color: #334155; margin: 8px 0 0 0; font-weight: 500;">
+              Dynamic performance tier evaluated against age-adjusted baseline reference ranges.
+            </p>
+          </div>
+          <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+            <span id="rep-overall-badge" style="background: #10b981; color: #ffffff; padding: 6px 16px; border-radius: 9999px; font-weight: 700; font-size: 0.88rem; letter-spacing: 0.04em; text-transform: uppercase; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+              Optimal Cognitive Vitality
+            </span>
+            <span style="font-size: 0.78rem; color: #64748b; font-family: var(--font-mono);">Age-Normed Percentile: <strong id="rep-percentile" style="color: #0f172a;">88th</strong></span>
+          </div>
+        </div>
+
+        <!-- 1. VISUAL ANALYTICS SECTION -->
+        <div class="pdf-page-break-avoid" style="margin-bottom: 30px;">
+          <h3 style="font-family: var(--font-mono); font-size: 1rem; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 18px; text-transform: uppercase;">
+            1. Visual Analytics & Cognitive Domain Profile
+          </h3>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; align-items: stretch;">
+            <!-- Radar Chart Box -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+              <span style="font-size: 0.75rem; font-weight: 700; color: #475569; font-family: var(--font-mono); text-transform: uppercase; margin-bottom: 12px;">Cognitive Domain Radar</span>
+              <canvas id="cognitive-radar-canvas" width="300" height="260" style="max-width: 100%;"></canvas>
+              <div style="display: flex; gap: 16px; margin-top: 10px; font-size: 0.75rem; font-family: var(--font-mono);">
+                <span style="color: #0284c7; font-weight: 700;">● Measured Score</span>
+                <span style="color: #94a3b8; font-weight: 700;">--- Baseline Norm</span>
+              </div>
+            </div>
+
+            <!-- Benchmark Bar Comparison Box -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 20px; display: flex; flex-direction: column; justify-content: space-around;">
+              <span style="font-size: 0.75rem; font-weight: 700; color: #475569; font-family: var(--font-mono); text-transform: uppercase; margin-bottom: 12px;">Standardized Domain Comparisons</span>
+              
+              <div id="analytics-bars-wrapper" style="display: flex; flex-direction: column; gap: 12px;">
+                <!-- Bar 1: Working Memory -->
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 3px;">
+                    <span>Working Memory Recall</span>
+                    <span id="bar-val-mem">--%</span>
+                  </div>
+                  <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                    <div id="bar-fill-mem" style="height: 100%; width: 0%; background: #0284c7; border-radius: 4px; transition: width 0.8s ease;"></div>
+                  </div>
+                </div>
+
+                <!-- Bar 2: Pattern Recognition -->
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 3px;">
+                    <span>Geometric Pattern Reasoning</span>
+                    <span id="bar-val-pat">--%</span>
+                  </div>
+                  <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                    <div id="bar-fill-pat" style="height: 100%; width: 0%; background: #10b981; border-radius: 4px; transition: width 0.8s ease;"></div>
+                  </div>
+                </div>
+
+                <!-- Bar 3: Visuospatial CDT -->
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 3px;">
+                    <span>Visuospatial Synthesis (CDT)</span>
+                    <span id="bar-val-clock">--%</span>
+                  </div>
+                  <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                    <div id="bar-fill-clock" style="height: 100%; width: 0%; background: #8b5cf6; border-radius: 4px; transition: width 0.8s ease;"></div>
+                  </div>
+                </div>
+
+                <!-- Bar 4: Reaction Speed -->
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 3px;">
+                    <span>Sensorimotor Reflex Speed</span>
+                    <span id="bar-val-rt">--%</span>
+                  </div>
+                  <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                    <div id="bar-fill-rt" style="height: 100%; width: 0%; background: #f59e0b; border-radius: 4px; transition: width 0.8s ease;"></div>
+                  </div>
+                </div>
+
+                <!-- Bar 5: Verbal Pacing -->
+                <div>
+                  <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: #334155; margin-bottom: 3px;">
+                    <span>Conversational Fluency (WPM)</span>
+                    <span id="bar-val-wpm">--%</span>
+                  </div>
+                  <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                    <div id="bar-fill-wpm" style="height: 100%; width: 0%; background: #06b6d4; border-radius: 4px; transition: width 0.8s ease;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CONVERSATIONAL SCREENING METRICS -->
+        <div class="pdf-page-break-avoid" style="margin-bottom: 30px;">
+          <h3 style="font-family: var(--font-mono); font-size: 1rem; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 18px; text-transform: uppercase;">
+            Conversational Screening Analysis
+          </h3>
+          
+          <div id="rep-conv-metrics-summary" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px; font-size: 0.88rem;">
+            <!-- Populated via JS -->
+          </div>
+
+          <table class="clinical-table premium-matrix" style="width: 100%; text-align: left; border-collapse: collapse; margin-bottom: 20px; font-size: 0.85rem;">
+            <thead style="background: #f1f5f9; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1;">
+              <tr>
+                <th style="padding: 12px 10px; font-size: 0.8rem; color: #334155;">Question (Exact)</th>
+                <th style="padding: 12px 10px; font-size: 0.8rem; color: #334155;">User's Answer</th>
+                <th style="padding: 12px 10px; font-size: 0.8rem; color: #334155; text-align: center;">Age Group</th>
+                <th style="padding: 12px 10px; font-size: 0.8rem; color: #334155; text-align: center;">Response Time</th>
+                <th style="padding: 12px 10px; font-size: 0.8rem; color: #334155; text-align: center;">Normative Ref.</th>
+                <th style="padding: 12px 10px; font-size: 0.8rem; color: #334155; text-align: center;">Observed Metric</th>
+                <th style="padding: 12px 10px; font-size: 0.8rem; color: #334155; text-align: right;">Cognitive Domain</th>
+              </tr>
+            </thead>
+            <tbody id="rep-conv-metrics-body">
+              <!-- Dynamically populated from State.timingData -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 2. INDIVIDUAL TEST RESULTS MATRIX -->
+        <div class="pdf-page-break-avoid" style="margin-bottom: 30px;">
+          <h3 style="font-family: var(--font-mono); font-size: 1rem; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 18px; text-transform: uppercase;">
+            2. Multimodal Biomarker & Cognitive Battery Results
+          </h3>
+
+          <table class="clinical-table premium-matrix" style="width: 100%; text-align: left; border-collapse: collapse; margin-bottom: 20px; font-size: 0.88rem;">
+            <thead style="background: #f1f5f9; border-top: 1px solid #cbd5e1; border-bottom: 1px solid #cbd5e1;">
+              <tr>
+                <th style="padding: 12px 14px; font-size: 0.82rem; color: #334155;">Assessment Module</th>
+                <th style="padding: 12px 14px; font-size: 0.82rem; color: #334155; text-align: center;">Measured Result</th>
+                <th style="padding: 12px 14px; font-size: 0.82rem; color: #334155; text-align: center;">Reference Baseline</th>
+                <th style="padding: 12px 14px; font-size: 0.82rem; color: #334155; text-align: right;">Performance Tier</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 14px 12px;">
+                  <strong style="color: #0f172a;">GEOMETRIC PATTERN RECOGNITION</strong><br>
+                  <span style="font-size: 0.78rem; color: #64748b;">12-Question Sequence, Rotation & Matrix Reasoning</span>
+                </td>
+                <td style="text-align: center; font-weight: 700; font-size: 1.1rem; color: #0f172a;" id="rep-matrix-pat">--</td>
+                <td style="text-align: center; font-family: var(--font-mono); color: #64748b;" id="rep-baseline-pat">&gt; 70%</td>
+                <td style="text-align: right; font-weight: 700; color: #10b981;" id="rep-tier-pat">Optimal</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 14px 12px;">
+                  <strong style="color: #0f172a;">WORKING MEMORY ACCURACY</strong><br>
+                  <span style="font-size: 0.78rem; color: #64748b;">5-Item Lexical Recall Grid & Target Retrieval</span>
+                </td>
+                <td style="text-align: center; font-weight: 700; font-size: 1.1rem; color: #0f172a;" id="rep-matrix-mem">--</td>
+                <td style="text-align: center; font-family: var(--font-mono); color: #64748b;" id="rep-baseline-mem">&gt; 70%</td>
+                <td style="text-align: right; font-weight: 700; color: #10b981;" id="rep-tier-mem">Optimal</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 14px 12px;">
+                  <strong style="color: #0f172a;">VISUOSPATIAL CLOCK DRAWING (CDT)</strong><br>
+                  <span style="font-size: 0.78rem; color: #64748b;">Contour Integrity, Numerals & 11:10 Hand Setting</span>
+                </td>
+                <td style="text-align: center; font-weight: 700; font-size: 1.1rem; color: #0f172a;" id="rep-matrix-clock">--</td>
+                <td style="text-align: center; font-family: var(--font-mono); color: #64748b;" id="rep-baseline-clock">&gt; 7 / 10</td>
+                <td style="text-align: right; font-weight: 700; color: #10b981;" id="rep-tier-clock">Intact</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 14px 12px;">
+                  <strong style="color: #0f172a;">SENSORIMOTOR REFLEX LATENCY</strong><br>
+                  <span style="font-size: 0.78rem; color: #64748b;">3-Trial Median Reaction Time</span>
+                </td>
+                <td style="text-align: center; font-weight: 700; font-size: 1.1rem; color: #0f172a;" id="rep-matrix-rt">--</td>
+                <td style="text-align: center; font-family: var(--font-mono); color: #64748b;" id="rep-baseline-rt">&lt; 480 ms</td>
+                <td style="text-align: right; font-weight: 700; color: #10b981;" id="rep-tier-rt">Normal</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 14px 12px;">
+                  <strong style="color: #0f172a;">LEXICAL TYPING VELOCITY</strong><br>
+                  <span style="font-size: 0.78rem; color: #64748b;">Conversational Keystroke Processing Speed</span>
+                </td>
+                <td style="text-align: center; font-weight: 700; font-size: 1.1rem; color: #0f172a;" id="rep-matrix-wpm">--</td>
+                <td style="text-align: center; font-family: var(--font-mono); color: #64748b;" id="rep-baseline-wpm">&gt; 35 WPM</td>
+                <td style="text-align: right; font-weight: 700; color: #10b981;" id="rep-tier-wpm">Expected</td>
+              </tr>
+              <tr style="border-bottom: 1px solid #cbd5e1;">
+                <td style="padding: 14px 12px;">
+                  <strong style="color: #0f172a;">DIGITAL EYE-TRACKING TELEMETRY</strong><br>
+                  <span style="font-size: 0.78rem; color: #64748b;">WebGazer Saccade Fixation & Stability Score</span>
+                </td>
+                <td style="text-align: center; font-weight: 700; font-size: 1.1rem; color: #0f172a;" id="rep-matrix-oculo">--</td>
+                <td style="text-align: center; font-family: var(--font-mono); color: #64748b;">&lt; 30 Index</td>
+                <td style="text-align: right; font-weight: 700; color: #10b981;" id="rep-tier-oculo">Stable</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Clock Drawing Canvas Snapshot -->
+          <div id="rep-clock-canvas-container" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+            <div style="width: 110px; height: 110px; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+              <img id="rep-clock-thumbnail" src="" alt="Clock Drawing" style="max-width: 100%; max-height: 100%; display: none;" />
+              <span id="rep-clock-placeholder" style="font-size: 0.75rem; color: #94a3b8; font-family: var(--font-mono);">Drawing</span>
+            </div>
+            <div style="flex: 1; min-width: 220px;">
+              <h4 style="margin: 0 0 4px 0; font-size: 0.95rem; color: #0f172a;">Visuospatial Clock Construction (11:10)</h4>
+              <p id="rep-clock-analysis-text" style="margin: 0; font-size: 0.82rem; color: #475569; line-height: 1.4;">Clock drawing evaluated for structural integrity, hand length disparity, and accurate 11:10 time setting.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. AGE-BASED COMPARISON & REACTION-TIME / PROCESSING-SPEED BENCHMARKS -->
+        <div class="pdf-page-break-avoid" style="margin-bottom: 30px;">
+          <h3 style="font-family: var(--font-mono); font-size: 1rem; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 16px; text-transform: uppercase;">
+            3. Age-Based Reference Comparison & Speed Benchmarks
+          </h3>
+
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+              <div>
+                <span style="font-size: 0.72rem; color: #64748b; font-family: var(--font-mono); text-transform: uppercase; font-weight: 700;">Stratified Peer Cohort</span>
+                <div style="font-size: 1.1rem; font-weight: 700; color: #0284c7;">
+                  Category: <span id="rep-age-band-display">51–70 years</span> (Actual Age: <span id="rep-actual-age-display">68</span> yrs)
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <span style="font-size: 0.72rem; color: #64748b; font-family: var(--font-mono); text-transform: uppercase; font-weight: 700;">Cohort Relative Placement</span>
+                <div style="font-size: 1.1rem; font-weight: 700; color: #10b981;" id="rep-peer-percentile-badge">88th Percentile</div>
+              </div>
+            </div>
+
+            <!-- Reaction Time & Processing Speed Comparison Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: 14px; margin-top: 14px;">
+              <!-- Reaction Time Box -->
+              <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <strong style="color: #0f172a; font-size: 0.88rem;">Reaction Speed & Reflex Latency</strong>
+                  <span id="rep-age-rt-measured" style="font-size: 1rem; font-weight: 700; color: #0284c7;">350 ms</span>
+                </div>
+                <div style="font-size: 0.76rem; color: #64748b; margin-bottom: 6px;">
+                  Expected Range for Age: <strong id="rep-age-rt-range" style="color: #334155;">290–480 ms</strong> (Mean: <span id="rep-age-rt-mean">375 ms</span>)
+                </div>
+                <div id="rep-age-rt-status" style="font-size: 0.82rem; font-weight: 700; color: #10b981;">
+                  Within the expected range for your age group
+                </div>
+              </div>
+
+              <!-- Processing Speed Box -->
+              <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                  <strong style="color: #0f172a; font-size: 0.88rem;">Conversational Processing Speed</strong>
+                  <span id="rep-age-proc-measured" style="font-size: 1rem; font-weight: 700; color: #0284c7;">125 WPM</span>
+                </div>
+                <div style="font-size: 0.76rem; color: #64748b; margin-bottom: 6px;">
+                  Expected Range for Age: <strong id="rep-age-proc-range" style="color: #334155;">95–150 WPM</strong> (Mean: <span id="rep-age-proc-mean">125 WPM</span>)
+                </div>
+                <div id="rep-age-proc-status" style="font-size: 0.82rem; font-weight: 700; color: #10b981;">
+                  Within the expected range for your age group
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. COGNITIVE STRENGTHS & FOCUS AREAS -->
+        <div class="pdf-page-break-avoid" style="margin-bottom: 30px;">
+          <h3 style="font-family: var(--font-mono); font-size: 1rem; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 16px; text-transform: uppercase;">
+            4. Cognitive Strengths & Priority Focus Areas
+          </h3>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
+            <!-- Strengths Box -->
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 16px;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <i data-feather="check-circle" style="width: 18px; height: 18px; color: #16a34a;"></i>
+                <h4 style="margin: 0; font-size: 0.92rem; color: #166534; font-weight: 700;">Identified Cognitive Strengths</h4>
+              </div>
+              <ul id="rep-strengths-list" style="margin: 0; padding-left: 18px; font-size: 0.82rem; color: #14532d; line-height: 1.55;">
+                <li>High-capacity working memory retention and lexical recall accuracy.</li>
+                <li>Strong abstract geometric reasoning and sequential pattern identification.</li>
+                <li>Intact visuospatial construction and executive contour integration.</li>
+              </ul>
+            </div>
+
+            <!-- Areas Requiring Attention Box -->
+            <div style="background: #fffbeb; border: 1px solid #fef3c7; border-radius: 8px; padding: 16px;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <i data-feather="target" style="width: 18px; height: 18px; color: #d97706;"></i>
+                <h4 style="margin: 0; font-size: 0.92rem; color: #92400e; font-weight: 700;">Areas Requiring Continued Attention</h4>
+              </div>
+              <ul id="rep-focus-areas-list" style="margin: 0; padding-left: 18px; font-size: 0.82rem; color: #78350f; line-height: 1.55;">
+                <li>Maintain regular aerobic exercise and restorative sleep hygiene to optimize neurovascular health.</li>
+                <li>Engage in regular dual-task cognitive-motor coordination exercises.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. LONGITUDINAL PROGRESS & TREND MONITORING -->
+        <div class="pdf-page-break-avoid" style="margin-bottom: 30px;">
+          <h3 style="font-family: var(--font-mono); font-size: 1rem; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 16px; text-transform: uppercase;">
+            5. Longitudinal Progress & Future Screening Baseline
+          </h3>
+
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;">
+            <div>
+              <h4 style="margin: 0 0 4px 0; font-size: 0.92rem; color: #0f172a; font-weight: 700;">Initial Baseline Established</h4>
+              <p style="margin: 0; font-size: 0.8rem; color: #475569; line-height: 1.45;">
+                This assessment establishes your standardized digital cognitive baseline. Follow-up assessments will compare trajectory trends across all domains.
+              </p>
+            </div>
+            <div style="text-align: right; min-width: 160px;">
+              <span style="font-size: 0.72rem; color: #64748b; font-family: var(--font-mono); text-transform: uppercase; font-weight: 700;">Recommended Check-in</span>
+              <div style="font-size: 0.95rem; font-weight: 700; color: #0284c7; margin-top: 2px;">In 6 Months</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. DIGITAL PHENOTYPING: FACIAL & VOICE ANALYSIS -->
+        <div class="pdf-page-break-avoid" style="margin-bottom: 30px;">
+          <h3 style="font-family: var(--font-mono); font-size: 1rem; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 16px; text-transform: uppercase;">
+            6. Digital Phenotyping: Facial & Voice Analysis Summary
+          </h3>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px;">
+            <!-- Facial Analysis Card (MediaPipe & DeepFace) -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                <i data-feather="smile" style="width: 18px; height: 18px; color: #0284c7;"></i>
+                <h4 style="margin: 0; font-size: 0.92rem; color: #0f172a; font-weight: 700;">Facial Movement & Affect (MediaPipe & DeepFace)</h4>
+              </div>
+              <ul style="margin: 0; padding-left: 18px; font-size: 0.82rem; color: #334155; line-height: 1.55;">
+                <li><strong>Oculomotor & Landmark Stability:</strong> <span id="rep-facial-oculo">88% (Preserved Fixation)</span></li>
+                <li><strong>Spontaneous Blink Dynamics:</strong> <span id="rep-facial-blink">18.2 CPM (Typical Baseline)</span></li>
+                <li><strong>Expression Valence (DeepFace):</strong> <span id="rep-facial-expressivity">Attentive & Emotionally Responsive</span></li>
+                <li><strong>Facial Apathy Index:</strong> <span id="rep-facial-apathy">Low / Normal (22.0)</span></li>
+              </ul>
+            </div>
+
+            <!-- Voice & Acoustic Analysis Card (Librosa & SpeechBrain) -->
+            <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+                <i data-feather="mic" style="width: 18px; height: 18px; color: #0284c7;"></i>
+                <h4 style="margin: 0; font-size: 0.92rem; color: #0f172a; font-weight: 700;">Voice & Speech Acoustics (Librosa & SpeechBrain)</h4>
+              </div>
+              <ul style="margin: 0; padding-left: 18px; font-size: 0.82rem; color: #334155; line-height: 1.55;">
+                <li><strong>Conversational Velocity:</strong> <span id="rep-voice-wpm">128 WPM (Fluent Pacing)</span></li>
+                <li><strong>Pitch & F0 Stability (Librosa):</strong> <span id="rep-voice-pitch">88.5% (Stable Modulation)</span></li>
+                <li><strong>Speech-to-Pause Ratio:</strong> <span id="rep-voice-pause">0.18 (Standard Lexical Latency)</span></li>
+                <li><strong>Prosodic Dynamics (SpeechBrain):</strong> <span id="rep-voice-cadence">Natural intonation & inflection</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. EXPLAINABLE MULTIMODAL ML CLASSIFICATION -->
+        <div class="pdf-page-break-avoid" style="margin-bottom: 30px;">
+          <h3 style="font-family: var(--font-mono); font-size: 1rem; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 16px; text-transform: uppercase;">
+            7. Explainable Multimodal ML Screening & Factor Contribution
+          </h3>
+
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; margin-bottom: 16px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 14px; border-bottom: 1px solid #e2e8f0; padding-bottom: 12px;">
+              <div>
+                <span style="font-size: 0.72rem; color: #64748b; font-family: var(--font-mono); text-transform: uppercase; font-weight: 700;">Algorithmic Screening Result</span>
+                <div style="font-size: 1.15rem; font-weight: 800; color: #0f172a;" id="rep-ml-diagnosis-label">No significant indicators detected</div>
+              </div>
+              <div style="text-align: right;">
+                <span style="font-size: 0.72rem; color: #64748b; font-family: var(--font-mono); text-transform: uppercase; font-weight: 700;">Confidence Level</span>
+                <div style="font-size: 1.15rem; font-weight: 800; color: #10b981;" id="rep-ml-confidence-pct">94.8%</div>
+              </div>
+            </div>
+
+            <h4 style="font-size: 0.85rem; color: #475569; margin: 0 0 10px 0; font-family: var(--font-mono); text-transform: uppercase;">Major Assessment Factors Influencing Screening Result:</h4>
+            <div id="rep-explainable-factors-list" style="display: flex; flex-direction: column; gap: 10px; font-size: 0.82rem;">
+              <!-- Dynamic explainable contribution bars -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 8. CLINICAL NARRATIVE & AI SYNTHESIS -->
+        <div class="pdf-page-break-avoid" style="margin-bottom: 28px;">
+          <h3 style="font-family: var(--font-mono); font-size: 1rem; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 16px; text-transform: uppercase;">
+            8. Analytical AI Narrative & Domain Interpretations
+          </h3>
+
+          <div style="display: flex; flex-direction: column; gap: 16px; font-size: 0.88rem; color: #334155; line-height: 1.55;">
+            <!-- Conversational Observations -->
+            <div>
+              <h4 style="font-size: 0.92rem; color: #0f172a; font-weight: 700; margin: 0 0 4px 0;">Conversational Cadence & Interaction</h4>
+              <ul id="rep-obs-conv" style="margin: 0; padding-left: 20px; font-size: 0.84rem;">
+                <li>Conversational pacing demonstrated consistent engagement and logical sentence formulation.</li>
+              </ul>
+            </div>
+
+            <!-- Cognitive Domain Observations -->
+            <div>
+              <h4 style="font-size: 0.92rem; color: #0f172a; font-weight: 700; margin: 0 0 4px 0;">Cognitive Domain Interpretation</h4>
+              <ul id="rep-obs-cog" style="margin: 0; padding-left: 20px; font-size: 0.84rem;">
+                <li>Working memory and multi-stage pattern recognition batteries completed with robust accuracy.</li>
+              </ul>
+            </div>
+
+            <!-- Actionable Recommendations -->
+            <div>
+              <h4 style="font-size: 0.92rem; color: #0f172a; font-weight: 700; margin: 0 0 4px 0;">Personalized Cognitive Wellness Recommendations</h4>
+              <ol id="rep-obs-recs" style="margin: 0; padding-left: 20px; font-size: 0.84rem; line-height: 1.6;">
+                <li>Continue engaging in mentally stimulating inductive logic puzzles and complex pattern problem-solving.</li>
+                <li>Maintain regular aerobic exercise and restorative sleep hygiene to optimize cerebral neurovascular health.</li>
+                <li>Conduct periodic cognitive screenings to monitor longitudinal wellness trajectories.</li>
+              </ol>
+            </div>
+
+            <!-- Executive Summary -->
+            <div style="background: #f8fafc; border-left: 4px solid #0284c7; padding: 14px 18px; border-radius: 4px;">
+              <h4 style="font-size: 0.88rem; color: #0284c7; font-weight: 700; margin: 0 0 4px 0; text-transform: uppercase;">Executive Wellness Summary</h4>
+              <p id="rep-obs-summary" style="margin: 0; font-size: 0.84rem; color: #334155; line-height: 1.5;">
+                Assessment indicates well-preserved cognitive vitality across memory retention, spatial clock construction, and geometric pattern recognition.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 9. COMPLETE SESSION RECORDING -->
+        <div class="pdf-page-break-avoid" style="margin-bottom: 30px;">
+          <h3 style="font-family: var(--font-mono); font-size: 1rem; color: #0f172a; border-bottom: 2px solid #cbd5e1; padding-bottom: 8px; margin-bottom: 16px; text-transform: uppercase;">
+            9. Complete Session Recording
+          </h3>
+          <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 18px; margin-bottom: 16px; display: flex; flex-direction: column; align-items: center;">
+            <video id="rep-session-video" controls style="max-width: 100%; width: 640px; border-radius: 8px; border: 1px solid #cbd5e1; display: none; background: #000;"></video>
+            <div style="margin-top: 14px; width: 100%; display: flex; justify-content: space-between; align-items: center; max-width: 640px;">
+              <div>
+                <span style="font-size: 0.72rem; color: #64748b; font-family: var(--font-mono); text-transform: uppercase; font-weight: 700;">Recording Status</span>
+                <div id="rep-session-video-status" style="font-size: 0.95rem; font-weight: 700; color: #64748b; margin-top: 2px;">Processing...</div>
+              </div>
+              <div style="text-align: right;">
+                <span style="font-size: 0.72rem; color: #64748b; font-family: var(--font-mono); text-transform: uppercase; font-weight: 700;">Session Duration</span>
+                <div id="rep-session-duration-bottom" style="font-size: 0.95rem; font-weight: 700; color: #0f172a; margin-top: 2px;">--:--</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 10. MANDATORY MEDICAL DISCLAIMER -->
+        <div class="pdf-page-break-avoid" style="background: #fef2f2; border: 1.5px solid #fecaca; border-radius: 8px; padding: 14px 18px; margin-bottom: 24px;">
+          <div style="display: flex; gap: 10px; align-items: flex-start;">
+            <i data-feather="alert-circle" style="width: 20px; height: 20px; color: #dc2626; min-width: 20px; margin-top: 2px;"></i>
+            <p style="margin: 0; font-size: 0.78rem; color: #991b1b; line-height: 1.5;">
+              <strong>Educational & Screening Disclaimer:</strong> This assessment is intended solely for cognitive wellness screening, digital phenotyping demonstration, and educational purposes. It is <strong>not a medical diagnosis</strong> and does not evaluate, diagnose, or treat dementia, Alzheimer's disease, or any neurological disorder. If you have concerns about your cognitive health, consult a qualified physician or healthcare professional.
+            </p>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="clinical-footer" style="margin-top: 24px; text-align: center; font-family: var(--font-mono); color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+          <p style="font-size: 0.72rem; letter-spacing: 2px; margin-bottom: 8px;">**** OFFICIAL DIGITAL COGNITIVE PASSPORT ****</p>
+          <h4 style="color: #0f172a; margin: 0; font-size: 0.95rem; font-weight: 800;">COGNYX HEALTH SCIENCES</h4>
+          <p style="margin: 3px 0 0 0; font-size: 0.72rem;">Precision Digital Phenotyping & Diagnostic AI Platform</p>
+        </div>
+
+      </div>
+
+      <!-- Report Action Buttons: Prominent and Easy to Navigate -->
+      <div style="display: flex; gap: 16px; margin-top: 28px; width: 100%; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+        <button id="back-dash-btn" class="btn-secondary" style="width: auto; padding: 14px 28px; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+          <i data-feather="arrow-left" style="width: 18px; height: 18px;"></i>
+          <span>Return to Dashboard</span>
+        </button>
+        <button id="download-pdf-btn" class="btn-primary" style="width: auto; padding: 14px 30px; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+          <i data-feather="download" style="width: 18px; height: 18px;"></i>
+          <span>Download PDF Report</span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Initialize feather icons on load
+    if (window.feather) {
+      feather.replace();
+    }
+  </script>
+  <script src="script.js?v=5"></script>
+</body>
+
+</html>
