@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "node backend/server.js",
+    "start:render": "concurrently -k \"node backend/server.js\" \"cd ml_service && uvicorn main:app --host 0.0.0.0 --port 8000\"",
     "dev": "concurrently -k -n \"BACKEND,ML_SVC\" -c \"cyan,magenta\" \"node backend/server.js\" \"cd ml_service && py -3.13 -m uvicorn main:app --port 8000 --reload\"",
     "backend": "node backend/server.js",
     "ml": "cd ml_service && py -3.13 -m uvicorn main:app --port 8000 --reload",
