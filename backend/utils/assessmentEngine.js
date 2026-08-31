@@ -2,17 +2,97 @@ const Groq = require('groq-sdk');
 const { safeParse } = require('./aiResponse');
 
 const SETUP_QUESTIONS = [
-  { id: "COMFORT", intent: "COMFORT", category: "SETUP", defaultText: "Hello, I am your digital clinician. How are you feeling today?" }
+  { 
+    id: "COMFORT", 
+    intent: "COMFORT", 
+    category: "SETUP", 
+    defaultText: "Hello, I am your digital clinician. How are you feeling today?",
+    translations: {
+      en: "Hello, I am your digital clinician. How are you feeling today?",
+      ta: "வணக்கம், நான் உங்கள் டிஜிட்டல் மருத்துவர். இன்று நீங்கள் எப்படி உணர்கிறீர்கள்?",
+      hi: "नमस्ते, मैं आपका डिजिटल चिकित्सक हूँ। आज आप कैसा महसूस कर रहे हैं?"
+    }
+  }
 ];
 
 const SCORED_QUESTIONS = [
-  { id: "AGE", intent: "AGE", category: "Demographic/context", defaultText: "Could you tell me your age or date of birth?" },
-  { id: "ORIENTATION", intent: "ORIENTATION", category: "Orientation", defaultText: "To get started, could you tell me what today's date is and what city or place you are in right now?" },
-  { id: "DAILY_ROUTINE", intent: "DAILY_ROUTINE", category: "Daily routine", defaultText: "Can you describe something you usually do during a normal day from morning to evening?" },
-  { id: "RECENT_MEMORY", intent: "RECENT_MEMORY", category: "Recent memory", defaultText: "What is one thing you remember doing yesterday or recently?" },
-  { id: "ATTENTION", intent: "ATTENTION", category: "Attention", defaultText: "When you are doing normal activities like reading, working, or watching TV, how easy is it for you to stay focused?" },
-  { id: "LANGUAGE", intent: "LANGUAGE", category: "Language", defaultText: "Do you sometimes have difficulty finding the right word when speaking or writing?" },
-  { id: "EVERYDAY_MEMORY", intent: "EVERYDAY_MEMORY", category: "Prospective memory", defaultText: "Do you ever forget where you placed things, forget appointments, or need reminders for everyday tasks?" }
+  { 
+    id: "AGE", 
+    intent: "AGE", 
+    category: "Demographic/context", 
+    defaultText: "Could you tell me your age or date of birth?",
+    translations: {
+      en: "Could you tell me your age or date of birth?",
+      ta: "உங்கள் வயது அல்லது பிறந்த தேதியைக் கூற முடியுமா?",
+      hi: "क्या आप मुझे अपनी आयु या जन्म तिथि बता सकते हैं?"
+    }
+  },
+  { 
+    id: "ORIENTATION", 
+    intent: "ORIENTATION", 
+    category: "Orientation", 
+    defaultText: "To get started, could you tell me what today's date is and what city or place you are in right now?",
+    translations: {
+      en: "To get started, could you tell me what today's date is and what city or place you are in right now?",
+      ta: "தொடங்குவதற்கு, இன்றைய தேதி என்ன என்றும், நீங்கள் தற்போது எந்த நகரம் அல்லது இடத்தில் இருக்கிறீர்கள் என்றும் கூற முடியுமா?",
+      hi: "शुरुआत करने के लिए, क्या आप मुझे बता सकते हैं कि आज की तारीख क्या है और आप अभी किस शहर या स्थान पर हैं?"
+    }
+  },
+  { 
+    id: "DAILY_ROUTINE", 
+    intent: "DAILY_ROUTINE", 
+    category: "Daily routine", 
+    defaultText: "Can you describe something you usually do during a normal day from morning to evening?",
+    translations: {
+      en: "Can you describe something you usually do during a normal day from morning to evening?",
+      ta: "ஒரு சாதாரண நாளில் காலையிலிருந்து மாலை வரை நீங்கள் வழக்கமாகச் செய்யும் ஒன்றை விவரிக்க முடியுமா?",
+      hi: "क्या आप बता सकते हैं कि आप आमतौर पर सुबह से शाम तक सामान्य दिन में क्या करते हैं?"
+    }
+  },
+  { 
+    id: "RECENT_MEMORY", 
+    intent: "RECENT_MEMORY", 
+    category: "Recent memory", 
+    defaultText: "What is one thing you remember doing yesterday or recently?",
+    translations: {
+      en: "What is one thing you remember doing yesterday or recently?",
+      ta: "நேற்று அல்லது சமீபத்தில் நீங்கள் செய்ததாக நினைவில் இருக்கும் ஒரு விஷயம் என்ன?",
+      hi: "ऐसी कौन सी एक बात है जो आपको कल या हाल ही में करने की याद है?"
+    }
+  },
+  { 
+    id: "ATTENTION", 
+    intent: "ATTENTION", 
+    category: "Attention", 
+    defaultText: "When you are doing normal activities like reading, working, or watching TV, how easy is it for you to stay focused?",
+    translations: {
+      en: "When you are doing normal activities like reading, working, or watching TV, how easy is it for you to stay focused?",
+      ta: "வாசிப்பது, வேலை செய்வது அல்லது டிவி பார்ப்பது போன்ற சாதாரண நடவடிக்கைகளைச் செய்யும்போது, கவனம் செலுத்துவது உங்களுக்கு எவ்வளவு எளிதாக இருக்கிறது?",
+      hi: "पढ़ने, काम करने या टीवी देखने जैसी सामान्य गतिविधियाँ करते समय, ध्यान केंद्रित रखना आपके लिए कितना आसान है?"
+    }
+  },
+  { 
+    id: "LANGUAGE", 
+    intent: "LANGUAGE", 
+    category: "Language", 
+    defaultText: "Do you sometimes have difficulty finding the right word when speaking or writing?",
+    translations: {
+      en: "Do you sometimes have difficulty finding the right word when speaking or writing?",
+      ta: "பேசும்போது அல்லது எழுதும்போது சரியான வார்த்தையைக் கண்டுபிடிப்பதில் சில நேரங்களில் சிரமம் ஏற்படுகிறதா?",
+      hi: "क्या बोलते या लिखते समय आपको कभी-कभी सही शब्द खोजने में कठिनाई होती है?"
+    }
+  },
+  { 
+    id: "EVERYDAY_MEMORY", 
+    intent: "EVERYDAY_MEMORY", 
+    category: "Prospective memory", 
+    defaultText: "Do you ever forget where you placed things, forget appointments, or need reminders for everyday tasks?",
+    translations: {
+      en: "Do you ever forget where you placed things, forget appointments, or need reminders for everyday tasks?",
+      ta: "பொருட்களை வைத்த இடத்தை மறப்பது, சந்திப்புகளை மறப்பது அல்லது அன்றாட பணிகளுக்கு நினைவூட்டல்கள் தேவைப்படுவது போன்ற நிகழ்வுகள் உங்களுக்கு ஏற்படுகிறதா?",
+      hi: "क्या आप कभी चीजें रखकर भूल जाते हैं, अपॉइंटमेंट भूल जाते हैं, या दैनिक कार्यों के लिए रिमाइंडर की आवश्यकता होती है?"
+    }
+  }
 ];
 
 const TIMING_THRESHOLDS = {
@@ -38,10 +118,10 @@ class AssessmentEngine {
     this.currentPhase = "SETUP"; // "SETUP" or "SCORED"
     this.currentQuestionIndex = 0;
     this.conversationComplete = false;
-    this.clarificationAttempted = false; // Tracks if we clarified the CURRENT question
+    this.clarificationAttempted = false;
     this.userAnswers = {};
     this.timingData = [];
-    this.history = []; // Multi-turn conversational dialogue memory
+    this.history = [];
     this.lastQuestionWording = null;
     this.age = null;
     this.ageBand = "Unknown";
@@ -76,7 +156,19 @@ class AssessmentEngine {
     return "VERY_SLOW";
   }
 
-  async processUserMessage(groqClient, userMessage, responseTimeMs = null, inputMethod = "text") {
+  getLocalizedQuestion(qObj, lang = "en") {
+    if (!qObj) return "";
+    const l = (lang === "ta" || lang === "hi") ? lang : "en";
+    if (qObj.translations && qObj.translations[l]) {
+      return qObj.translations[l];
+    }
+    return qObj.defaultText || "";
+  }
+
+  async processUserMessage(groqClient, userMessage, responseTimeMs = null, inputMethod = "text", language = "en") {
+    const activeLang = (language === "ta" || language === "hi") ? language : "en";
+    const langName = activeLang === "ta" ? "Tamil" : (activeLang === "hi" ? "Hindi" : "English");
+
     if (userMessage === "[START]") {
       this.currentPhase = "SETUP";
       this.currentQuestionIndex = 0;
@@ -89,21 +181,26 @@ class AssessmentEngine {
       this.ageBand = "Unknown";
       
       const currentQuestion = SETUP_QUESTIONS[0];
-      this.lastQuestionWording = currentQuestion.defaultText;
-      this.history.push({ role: "assistant", text: currentQuestion.defaultText });
+      this.lastQuestionWording = this.getLocalizedQuestion(currentQuestion, activeLang);
+      this.history.push({ role: "assistant", text: this.lastQuestionWording });
       return { 
         type: "question", 
         acknowledgement: null, 
-        question: currentQuestion.defaultText, 
+        question: this.lastQuestionWording, 
         isComplete: false 
       };
     }
 
     if (this.conversationComplete) {
+      const closingAck = activeLang === "ta"
+        ? "பகிர்ந்தமைக்கு நன்றி. நமது உரையாடல் பரிசோதனை நிறைவடைந்தது."
+        : (activeLang === "hi"
+            ? "साझा करने के लिए धन्यवाद। हमारा संवादात्मक मूल्यांकन पूरा हो गया है।"
+            : "Thank you for sharing that with me. We have completed the conversational screening.");
       return { 
         type: "complete", 
         conversation_complete: true, 
-        acknowledgement: "Thank you for sharing that with me. We have completed the conversational screening.",
+        acknowledgement: closingAck,
         timingData: this.timingData
       };
     }
@@ -128,7 +225,7 @@ class AssessmentEngine {
         user_answer: userMessage,
         answer_length: userMessage ? userMessage.length : 0,
         is_empty: !userMessage || userMessage.trim().length === 0,
-        uncertainty_flag: userMessage && userMessage.toLowerCase().match(/don't know|can't remember|not sure|no idea/i) ? true : false,
+        uncertainty_flag: userMessage && userMessage.toLowerCase().match(/don't know|can't remember|not sure|no idea|தெரியாது|மறந்து|याद नहीं|पता नहीं/i) ? true : false,
         answer_status: "answered",
         question_timestamp: questionTimestamp,
         answer_timestamp: answerTimestamp,
@@ -160,6 +257,7 @@ class AssessmentEngine {
     const recentHistoryStr = this.history.slice(-8).map(h => `${h.role === 'assistant' ? 'Clinician' : 'User'}: "${h.text}"`).join("\n");
 
     const extractionPrompt = `You are the COGNYX clinical AI clinician conducting a warm, supportive, and natural conversational screening.
+Target Language: ${langName}
 
 Conversation Context So Far:
 ${recentHistoryStr}
@@ -169,41 +267,48 @@ User's Latest Response: "${userMessage}"
 Next Clinical Target Intent: ${nextQuestion ? nextQuestion.intent : "NONE - Conversation Concludes"}
 
 Clinical Communication Guidelines:
-- Respond naturally, warmly, and empathetically to the specific content and nuance of the user's answer.
-- Extract the factual core value (e.g. "62" for age, "Teacher" for occupation, "Springfield" for hometown).
-- DO NOT generate follow-up questions or clarify the user's answer, even if their answer is short, vague, "I don't know", or "okay".
-- You are ONLY generating an acknowledgement of the user's answer. The system will append the next question automatically.
+- Respond naturally, warmly, and empathetically in ${langName} directly acknowledging the user's specific response.
+- Extract the factual core value (e.g. numeric "62" for age, occupation, hometown, etc.).
+- DO NOT ask questions or add follow-up questions in the acknowledgement. The system will append the next question automatically.
 
 Output STRICT JSON ONLY:
 {
   "extracted_value": "...",
-  "acknowledgement": "Warm, natural sentence directly reflecting their specific answer"
+  "acknowledgement": "Warm, natural sentence in ${langName} directly acknowledging their specific answer"
 }`;
 
     let extracted;
     try {
-      const groqModel = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
-      const res = await groqClient.chat.completions.create({
+      const groqModel = process.env.GROQ_MODEL || "openai/gpt-oss-20b";
+      const groqCall = groqClient.chat.completions.create({
         messages: [
-          { role: "system", content: "You are the COGNYX digital clinician conducting a warm, natural, and medically sound cognitive screening dialogue. Output STRICT JSON." },
+          { role: "system", content: `You are the COGNYX digital clinician conducting a warm, natural cognitive screening dialogue in ${langName}. Output STRICT JSON.` },
           { role: "user", content: extractionPrompt }
         ],
         model: groqModel,
         response_format: { type: "json_object" },
         temperature: 0.6
       });
+
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Groq conversational completion timed out")), 2500)
+      );
+
+      const res = await Promise.race([groqCall, timeoutPromise]);
       extracted = safeParse(res.choices[0].message.content, { 
         extracted_value: null, acknowledgement: "" 
       });
     } catch (err) {
-      console.error("Conversational LLM error:", err.message);
+      console.error("Conversational LLM notice (fast fallback activated):", err.message);
+      const defaultAck = activeLang === "ta" ? "நான் புரிந்து கொண்டேன்." : (activeLang === "hi" ? "मैं समझता हूँ।" : "I understand.");
       extracted = { 
-        extracted_value: userMessage, acknowledgement: ""
+        extracted_value: userMessage, acknowledgement: defaultAck
       };
     }
 
-    if (currentQuestion.id === "AGE" && extracted.extracted_value) {
-      const match = String(extracted.extracted_value).match(/\d+/);
+    if (currentQuestion.id === "AGE" && (extracted.extracted_value || userMessage)) {
+      const combinedText = `${extracted.extracted_value || ""} ${userMessage}`;
+      const match = combinedText.match(/\d+/);
       if (match) {
         this.age = match[0];
         this.ageBand = this.calculateAgeBand(this.age);
@@ -211,7 +316,7 @@ Output STRICT JSON ONLY:
     }
 
     if (!isSetup && timingRecord) {
-      if (userMessage.toLowerCase().match(/don't know|can't remember|not sure|no idea/)) {
+      if (userMessage.toLowerCase().match(/don't know|can't remember|not sure|no idea|தெரியாது|மறந்து|याद नहीं|पता नहीं/i)) {
         timingRecord.answer_status = "not_available";
       }
     }
@@ -222,11 +327,11 @@ Output STRICT JSON ONLY:
       time_ms: responseTimeMs
     };
 
-    // Unconditionally advance to the next phase/question
+    // Advance to next phase/question
     this.currentPhase = nextPhase;
     this.currentQuestionIndex = nextIndex;
 
-    this.lastQuestionWording = nextQuestion ? nextQuestion.defaultText : "";
+    this.lastQuestionWording = nextQuestion ? this.getLocalizedQuestion(nextQuestion, activeLang) : "";
     const combinedReply = extracted.acknowledgement ? `${extracted.acknowledgement} ${this.lastQuestionWording}` : this.lastQuestionWording;
     
     if (nextQuestion) {
@@ -239,7 +344,11 @@ Output STRICT JSON ONLY:
       };
     } else {
       this.conversationComplete = true;
-      const finalMsg = "Thank you so much for sharing your experiences with me. We have finished our conversational screening.";
+      const finalMsg = activeLang === "ta"
+        ? "உங்கள் அனுபவங்களை என்னுடன் பகிர்ந்து கொண்டதற்கு மிக்க நன்றி. நமது உரையாடல் பரிசோதனை நிறைவடைந்தது."
+        : (activeLang === "hi"
+            ? "अपने अनुभव मेरे साथ साझा करने के लिए बहुत-बहुत धन्यवाद। हमारा संवादात्मक मूल्यांकन पूरा हो गया है।"
+            : "Thank you so much for sharing your experiences with me. We have finished our conversational screening.");
       const fullClosing = extracted.acknowledgement ? `${extracted.acknowledgement} ${finalMsg}` : finalMsg;
       this.history.push({ role: "assistant", text: fullClosing });
       return {

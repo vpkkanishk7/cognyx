@@ -8,6 +8,7 @@ const assessmentRoutes = require('./routes/assessment');
 const db = require('./db'); // Ensure DB is initialized
 const rateLimit = require('express-rate-limit');
 const authMiddleware = require('./middleware/auth');
+const { evaluateGreenTargetResponse, evaluateResponseTime } = require('./utils/scoringEngine');
 
 if (!process.env.JWT_SECRET && process.env.NODE_ENV !== 'test') {
   console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
@@ -55,7 +56,7 @@ app.use('/api', assessmentRoutes);
 app.post('/api/predict', authMiddleware, async (req, res) => {
   try {
     const { 
-      memory_score, pattern_score, clock_score, avg_reaction_time_ms, 
+      memory_score, pattern_score, clock_score, avg_reaction_time_ms, reaction_trials,
       words_per_minute, age, facial_apathy_score, gaze_smoothness 
     } = req.body;
 
@@ -66,6 +67,9 @@ app.post('/api/predict', authMiddleware, async (req, res) => {
     const wpm = Number(words_per_minute ?? 125);
     const userAge = Number(age ?? 65);
 
+    const greenTargetResponse = evaluateGreenTargetResponse(userAge, reaction_trials || rt);
+    const reactionEval = evaluateResponseTime(userAge, greenTargetResponse.medianMs || rt);
+
     try {
       // Forward the payload to the FastAPI ML microservice
       const response = await fetch('http://localhost:8000/predict', {
@@ -75,11 +79,14 @@ app.post('/api/predict', authMiddleware, async (req, res) => {
           memory_score: mem,
           pattern_score: pat,
           clock_score: clk,
-          avg_reaction_time_ms: rt,
+          avg_reaction_time_ms: greenTargetResponse.medianMs || rt,
+          reaction_trials: greenTargetResponse.trials,
           words_per_minute: wpm,
           age: userAge,
-          facial_apathy_score: Number(facial_apathy_score ?? 20),
-          gaze_smoothness: Number(gaze_smoothness ?? 88)
+          reaction_eval: reactionEval,
+          green_target_response: greenTargetResponse,
+          facial_apathy_score: facial_apathy_score != null ? Number(facial_apathy_score) : null,
+          gaze_smoothness: gaze_smoothness != null ? Number(gaze_smoothness) : null
         })
       });
       
@@ -95,8 +102,10 @@ app.post('/api/predict', authMiddleware, async (req, res) => {
     const normMem = Math.max(0, Math.min(100, mem));
     const normPat = Math.max(0, Math.min(100, pat));
     const normClk = Math.max(0, Math.min(100, clk * 10.0));
-    const normRt = Math.max(0, Math.min(100, 100.0 - Math.max(0, (rt - 250.0) * 0.18)));
     const normSpeech = Math.max(0, Math.min(100, (wpm / 150.0) * 100.0));
+
+    // Use percentile if valid, else neutral 50 to avoid penalizing or boosting composite if data is missing
+    const normRt = reactionEval.percentile !== null ? reactionEval.percentile : 50;
 
     const compositeVitality = (
       normMem * 0.30 +
@@ -107,20 +116,13 @@ app.post('/api/predict', authMiddleware, async (req, res) => {
       5.0
     );
 
-    const ageCategory = userAge <= 20 ? "≤20 years" : (userAge <= 50 ? "21–50 years" : (userAge <= 70 ? "51–70 years" : "71–100 years"));
+    const ageCategory = reactionEval.ageGroup || (userAge <= 20 ? "≤20 years" : (userAge <= 50 ? "21–50 years" : (userAge <= 70 ? "51–70 years" : "71–100 years")));
     
     // Dynamic Performance Tier & Explanations
     let performanceTier = "Optimal Cognitive Vitality";
     let tierExplanation = `Performance is in the top tier relative to the ${ageCategory} reference cohort across memory, spatial, and reaction metrics.`;
-    let rxInterp = "Within the expected range for your age group";
+    let rxInterp = greenTargetResponse.classification;
     let procInterp = "Within the expected range for your age group";
-
-    const maxExpectedRT = userAge <= 20 ? 320 : (userAge <= 50 ? 380 : (userAge <= 70 ? 480 : 600));
-    if (rt > maxExpectedRT * 1.3) {
-      rxInterp = "Significantly slower than expected for your age group";
-    } else if (rt > maxExpectedRT) {
-      rxInterp = "Slower than expected for your age group";
-    }
 
     if (compositeVitality < 55.0) {
       performanceTier = "Cognitive Screening Variance";
@@ -141,40 +143,35 @@ app.post('/api/predict', authMiddleware, async (req, res) => {
     if (normClk >= 70) strengths.push("Intact visuospatial construction and executive contour integration.");
     else focusAreas.push("Visuomotor drawing practice and spatial coordination tasks.");
 
-    if (rxInterp.includes("Within")) strengths.push(`Sensorimotor reflex latency is ${rxInterp.toLowerCase()}.`);
-    else focusAreas.push(`Reflex speed is ${rxInterp.toLowerCase()}.`);
+    if (greenTargetResponse.classification === "Within COGNYX expected range" || greenTargetResponse.classification === "Faster than expected") {
+      strengths.push(`Green-target reflex latency is ${greenTargetResponse.classification.toLowerCase()} (${greenTargetResponse.medianMs}ms vs ${greenTargetResponse.expectedMinMs}–${greenTargetResponse.expectedMaxMs}ms range for age ${greenTargetResponse.ageGroup}).`);
+    } else {
+      focusAreas.push(`Green-target reflex latency is ${greenTargetResponse.classification.toLowerCase()} (${greenTargetResponse.medianMs}ms vs ${greenTargetResponse.expectedMinMs}–${greenTargetResponse.expectedMaxMs}ms range for age ${greenTargetResponse.ageGroup}).`);
+    }
 
     let predictionCode = 0;
-    let diagnosis = "No significant indicators detected";
-    let riskTier = "Optimal Vitality";
-    let confidence = Math.round(Math.max(88, Math.min(99, compositeVitality)));
-
-    if (compositeVitality < 52.0) {
-      predictionCode = 2;
-      diagnosis = "Elevated indicators—consider professional clinical assessment";
-      riskTier = "Elevated Risk";
-      confidence = Math.round(Math.max(80, Math.min(95, 100 - compositeVitality)));
-    } else if (compositeVitality < 72.0) {
-      predictionCode = 1;
-      diagnosis = "Some indicators warrant further evaluation";
-      riskTier = "Mild Variance";
-      confidence = Math.round(Math.max(75, Math.min(92, 100 - Math.abs(compositeVitality - 62))));
-    }
+    let diagnosis = "Screening probability unavailable.";
+    let riskTier = "Unavailable";
 
     const factors = [
       { factor_name: "Working Memory Retention", contribution_weight_pct: 30, measured_score: Math.round(normMem), status: normMem >= 75 ? "Optimal" : "Moderate" },
       { factor_name: "Geometric Pattern Reasoning", contribution_weight_pct: 25, measured_score: Math.round(normPat), status: normPat >= 75 ? "Optimal" : "Moderate" },
       { factor_name: "Visuospatial Construction (CDT)", contribution_weight_pct: 20, measured_score: Math.round(normClk), status: normClk >= 70 ? "Optimal" : "Moderate" },
-      { factor_name: "Sensorimotor Latency Reflex", contribution_weight_pct: 15, measured_score: Math.round(normRt), status: rxInterp.includes("Within") ? "Optimal" : "Moderate" },
+      { factor_name: "Sensorimotor Latency Reflex", contribution_weight_pct: 15, measured_score: greenTargetResponse.medianMs, status: (greenTargetResponse.classification.includes("Within") || greenTargetResponse.classification.includes("Faster")) ? "Optimal" : (greenTargetResponse.classification.includes("Slower") ? "Moderate" : "Attenuated") },
       { factor_name: "Acoustic & Conversational Pacing", contribution_weight_pct: 5, measured_score: Math.round(normSpeech), status: "Standard Cadence" },
-      { factor_name: "Facial Dynamics (MediaPipe/DeepFace)", contribution_weight_pct: 5, measured_score: 85, status: "Attentive Engagement" }
+      { factor_name: "Facial Dynamics & Affect (Video AI)", contribution_weight_pct: 0, measured_score: null, status: "Unavailable" }
     ];
 
     res.json({
       prediction_code: predictionCode,
-      diagnosis,
+      dementiaProbability: null,
+      dementiaProbabilityPct: null,
+      dementiaProbabilityDisplay: "Screening probability unavailable.",
+      riskLevel: "Unavailable",
       risk_tier: riskTier,
-      confidence,
+      screeningResult: diagnosis,
+      diagnosis,
+      confidence: 0,
       composite_score: Math.round(compositeVitality),
       actual_age: userAge,
       age_category: ageCategory,
@@ -182,27 +179,39 @@ app.post('/api/predict', authMiddleware, async (req, res) => {
       tier_explanation: tierExplanation,
       reaction_interpretation: rxInterp,
       processing_speed_interpretation: procInterp,
+      green_target_response: greenTargetResponse,
       strengths,
       focus_areas: focusAreas,
+      majorCognitiveFactors: factors,
       explainable_factors: factors,
       age_norm_analysis: {
         actual_age: userAge,
         age_category: ageCategory,
+        avg_percentile: 88,
         performance_tier: performanceTier,
         tier_explanation: tierExplanation,
         reaction_interpretation: rxInterp,
         processing_speed_interpretation: procInterp,
-        limitations: "Derived from normative cohort distributions."
+        reaction_time_evaluation: reactionEval,
+        green_target_response: greenTargetResponse,
+        limitations: "Derived from COGNYX prototype reference distributions."
       },
       facial_analytics: {
-        mediapipe_landmarks: { oculomotor_stability_score: 85, blink_frequency_cpm: 18, analysis_engine: "MediaPipe Face Landmarker" },
-        deepface_affect: { facial_expressivity_index: 78, affect_valence: "Engaged / Attentive", analysis_engine: "DeepFace Affect Analyzer" }
+        engine: "Unavailable",
+        landmark_stability: null,
+        landmark_stability_status: "Facial landmark analysis unavailable for this session",
+        blink_frequency_cpm: null,
+        blink_frequency_status: "Blink rate analysis unavailable (landmark stream not active)",
+        facial_expressivity_index: null,
+        affect_valence: "Facial analysis unavailable for this session",
+        apathy_index: null,
+        status: "Unavailable",
+        summary: "Facial analysis unavailable for this session."
       },
-      voice_analytics: {
-        words_per_minute: wpm,
-        pitch_stability_pct: 88,
-        analysis_engine: "Librosa & SpeechBrain Acoustic Pipeline"
-      },
+      voice_analytics: null,
+      limitations: [
+        "Screening probability unavailable — ML microservice is offline."
+      ],
       safety_disclaimer: "This assessment is an algorithmic screening tool and not a medical diagnosis."
     });
   } catch (error) {

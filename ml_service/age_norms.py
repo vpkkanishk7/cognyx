@@ -10,7 +10,6 @@ stratified by the 4 standardized clinical age categories:
 
 AGE_NORMATIVE_TABLE = {
     "≤20 years": {
-        "reaction_time_ms": {"mean": 250, "sd": 40, "expected_range": [180, 320], "unit": "ms"},
         "working_memory_recall": {"mean": 94, "sd": 8, "expected_range": [80, 100], "unit": "%"},
         "pattern_reasoning": {"mean": 92, "sd": 8, "expected_range": [80, 100], "unit": "%"},
         "clock_drawing": {"mean": 9.8, "sd": 0.4, "expected_range": [9.0, 10.0], "unit": "/10"},
@@ -19,7 +18,6 @@ AGE_NORMATIVE_TABLE = {
         "facial_expressivity": {"mean": 82, "sd": 10, "expected_range": [65, 98], "unit": "index"}
     },
     "21–50 years": {
-        "reaction_time_ms": {"mean": 295, "sd": 45, "expected_range": [230, 380], "unit": "ms"},
         "working_memory_recall": {"mean": 90, "sd": 10, "expected_range": [75, 100], "unit": "%"},
         "pattern_reasoning": {"mean": 88, "sd": 10, "expected_range": [72, 100], "unit": "%"},
         "clock_drawing": {"mean": 9.5, "sd": 0.6, "expected_range": [8.5, 10.0], "unit": "/10"},
@@ -28,7 +26,6 @@ AGE_NORMATIVE_TABLE = {
         "facial_expressivity": {"mean": 76, "sd": 12, "expected_range": [55, 92], "unit": "index"}
     },
     "51–70 years": {
-        "reaction_time_ms": {"mean": 375, "sd": 55, "expected_range": [290, 480], "unit": "ms"},
         "working_memory_recall": {"mean": 80, "sd": 12, "expected_range": [60, 95], "unit": "%"},
         "pattern_reasoning": {"mean": 78, "sd": 14, "expected_range": [58, 92], "unit": "%"},
         "clock_drawing": {"mean": 8.8, "sd": 1.0, "expected_range": [7.5, 10.0], "unit": "/10"},
@@ -37,7 +34,6 @@ AGE_NORMATIVE_TABLE = {
         "facial_expressivity": {"mean": 68, "sd": 14, "expected_range": [48, 85], "unit": "index"}
     },
     "71–100 years": {
-        "reaction_time_ms": {"mean": 460, "sd": 75, "expected_range": [340, 600], "unit": "ms"},
         "working_memory_recall": {"mean": 70, "sd": 15, "expected_range": [50, 90], "unit": "%"},
         "pattern_reasoning": {"mean": 68, "sd": 15, "expected_range": [45, 85], "unit": "%"},
         "clock_drawing": {"mean": 8.2, "sd": 1.4, "expected_range": [6.5, 9.8], "unit": "/10"},
@@ -64,17 +60,6 @@ def resolve_age_band(age: int | float | None) -> str:
     else:
         return "71–100 years"
 
-def interpret_reaction_speed(measured_ms: float, age_band: str) -> str:
-    ref = AGE_NORMATIVE_TABLE.get(age_band, AGE_NORMATIVE_TABLE["51–70 years"])["reaction_time_ms"]
-    max_expected = ref["expected_range"][1]
-    
-    if measured_ms <= max_expected:
-        return "Within the expected range for your age group"
-    elif measured_ms <= max_expected * 1.3:
-        return "Slower than expected for your age group"
-    else:
-        return "Significantly slower than expected for your age group"
-
 def interpret_processing_speed(measured_wpm: float, age_band: str) -> str:
     ref = AGE_NORMATIVE_TABLE.get(age_band, AGE_NORMATIVE_TABLE["51–70 years"])["speech_wpm"]
     min_expected = ref["expected_range"][0]
@@ -98,8 +83,8 @@ def compute_age_norm_comparison(age: int | float | None, measured_values: dict) 
         mean = ref["mean"]
         sd = ref["sd"]
         
-        # Calculate z-score (inverted for reaction_time and gaze_stability where lower is better)
-        if metric in ["reaction_time_ms", "gaze_stability"]:
+        # Calculate z-score (inverted for gaze_stability where lower is better)
+        if metric in ["gaze_stability"]:
             z = (mean - val) / sd
         else:
             z = (val - mean) / sd
@@ -125,10 +110,7 @@ def compute_age_norm_comparison(age: int | float | None, measured_values: dict) 
             percentile = 3
 
         # Interpretations
-        if metric == "reaction_time_ms":
-            interpretation = interpret_reaction_speed(val, band)
-            status = "Within Expected" if "Within" in interpretation else ("Slower than Expected" if "Slower" in interpretation else "Significantly Slower")
-        elif metric == "speech_wpm":
+        if metric == "speech_wpm":
             interpretation = interpret_processing_speed(val, band)
             status = "Within Expected" if "Within" in interpretation else "Slower than Expected"
         else:
@@ -167,7 +149,7 @@ def compute_age_norm_comparison(age: int | float | None, measured_values: dict) 
         "performance_tier": performance_tier,
         "tier_explanation": tier_explanation,
         "avg_percentile": round(avg_percentile, 1),
-        "reaction_interpretation": interpret_reaction_speed(measured_values.get("reaction_time_ms", 350), band),
+        "reaction_interpretation": "Reaction time evaluation handled centrally",
         "processing_speed_interpretation": interpret_processing_speed(measured_values.get("speech_wpm", 125), band),
         "comparisons": comparisons,
         "limitations": "Age-normed reference ranges are calibrated against standardized peer cohort distributions. Performance can vary with time of day, fatigue, and individual test environment."

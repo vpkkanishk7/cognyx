@@ -50,6 +50,8 @@ const db = new sqlite3.Database(dbPath, (err) => {
       // Safe migrations for existing DBs
       db.run(`ALTER TABLE Assessments ADD COLUMN pattern_score INTEGER`, () => {});
       db.run(`ALTER TABLE Assessments ADD COLUMN overall_score INTEGER`, () => {});
+      db.run(`ALTER TABLE Assessments ADD COLUMN dementia_prob REAL`, () => {});
+      db.run(`ALTER TABLE Assessments ADD COLUMN risk_level TEXT`, () => {});
     });
   }
 });

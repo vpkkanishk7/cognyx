@@ -1,0 +1,129 @@
+{
+  "modelVersion": "COGNYX-ML-v3.0-OPTIMAL",
+  "modelType": "Random Forest (Balanced Subsample)",
+  "calibrationMethod": "Platt Scaling (Sigmoid) on Validation Set",
+  "datasetSource": "OPTIMAL Multi-cohort Neuropsychological Study (Dataset 3)",
+  "targetLabel": "dementia_all (0: Control, 1: Dementia)",
+  "totalParticipants": 1467,
+  "totalSamples": 1842,
+  "dataSplit": {
+    "trainingSamples": 1295,
+    "trainingParticipants": 1026,
+    "trainingClassDistribution": {
+      "control_0": 1214,
+      "dementia_1": 81
+    },
+    "validationSamples": 267,
+    "validationParticipants": 220,
+    "validationClassDistribution": {
+      "control_0": 250,
+      "dementia_1": 17
+    },
+    "testSamples": 280,
+    "testParticipants": 221,
+    "testClassDistribution": {
+      "control_0": 262,
+      "dementia_1": 18
+    }
+  },
+  "validationComparison": {
+    "Logistic Regression (Balanced)": {
+      "accuracy": 0.6741573033707865,
+      "precision": 0.11956521739130435,
+      "recall_sensitivity": 0.6470588235294118,
+      "specificity": 0.676,
+      "f1_score": 0.2018348623853211,
+      "roc_auc": 0.7524705882352941,
+      "pr_auc": 0.2005528009648847,
+      "confusion_matrix": {
+        "tn": 169,
+        "fp": 81,
+        "fn": 6,
+        "tp": 11
+      }
+    },
+    "Random Forest (Balanced Subsample)": {
+      "accuracy": 0.8764044943820225,
+      "precision": 0.23333333333333334,
+      "recall_sensitivity": 0.4117647058823529,
+      "specificity": 0.908,
+      "f1_score": 0.2978723404255319,
+      "roc_auc": 0.8258823529411765,
+      "pr_auc": 0.2088604732858572,
+      "confusion_matrix": {
+        "tn": 227,
+        "fp": 23,
+        "fn": 10,
+        "tp": 7
+      }
+    },
+    "Gradient Boosting": {
+      "accuracy": 0.9288389513108615,
+      "precision": 0.0,
+      "recall_sensitivity": 0.0,
+      "specificity": 0.992,
+      "f1_score": 0.0,
+      "roc_auc": 0.7836470588235294,
+      "pr_auc": 0.1866934446104468,
+      "confusion_matrix": {
+        "tn": 248,
+        "fp": 2,
+        "fn": 17,
+        "tp": 0
+      }
+    },
+    "HistGradientBoosting (Balanced)": {
+      "accuracy": 0.8689138576779026,
+      "precision": 0.23529411764705882,
+      "recall_sensitivity": 0.47058823529411764,
+      "specificity": 0.896,
+      "f1_score": 0.3137254901960784,
+      "roc_auc": 0.8009411764705883,
+      "pr_auc": 0.1761459382636256,
+      "confusion_matrix": {
+        "tn": 224,
+        "fp": 26,
+        "fn": 9,
+        "tp": 8
+      }
+    }
+  },
+  "heldOutTestMetrics": {
+    "accuracy": 0.8107142857142857,
+    "precision": 0.16981132075471697,
+    "recall_sensitivity": 0.5,
+    "specificity": 0.8320610687022901,
+    "f1_score": 0.2535211267605634,
+    "roc_auc": 0.7828668363019508,
+    "pr_auc": 0.18162526109013108,
+    "confusion_matrix": {
+      "tn": 218,
+      "fp": 44,
+      "fn": 9,
+      "tp": 9
+    }
+  },
+  "featureNames": [
+    "age",
+    "educationyears",
+    "EF",
+    "PS",
+    "Global",
+    "diabetes",
+    "gender_gender_male"
+  ],
+  "featureImportanceMean": {
+    "age": 0.04380831212892276,
+    "educationyears": -0.002873197625106072,
+    "EF": 0.008608990670059324,
+    "PS": 0.03295165394402031,
+    "Global": 0.019571670907548726,
+    "diabetes": -0.002926208651399531,
+    "gender_gender_male": 0.0026823579304494916
+  },
+  "limitations": [
+    "Algorithmic research screening assessment, not a medical diagnosis.",
+    "Visual-motor green-target response compared against COGNYX engineering reference values, not clinically validated norms.",
+    "Trained on research cohorts with 6.3% dementia prevalence."
+  ]
+}

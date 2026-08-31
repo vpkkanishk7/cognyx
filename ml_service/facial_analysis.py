@@ -1,61 +1,63 @@
 """
-COGNYX — Facial Landmark & Expression Analysis Module
-Utilizes MediaPipe Face Landmarker for structural dynamics & DeepFace for emotion dynamics.
-Outputs measurable quantitative biomarkers: gaze fixation stability, blink frequency,
-facial apathy indices, and expression dynamics across session recordings.
+COGNYX — Facial Affect & Video Telemetry Analysis Module
+
+Provides rigorous evaluation of facial expressivity and apathy metrics derived
+from authenticated video analysis streams.
+
+Data Validity Protocol:
+- If raw video/facial telemetry is absent, returns None / unavailable status.
+- Strictly eliminates fabricated constants and arbitrary default fallbacks.
+- Accurately attributes analysis to the active engine (Gemini Video AI).
 """
 
-import numpy as np
-
-def analyze_facial_telemetry_mediapipe(frames_or_samples: list) -> dict:
+def analyze_facial_telemetry(frames_or_samples: list | None = None) -> dict | None:
     """
-    Extracts geometric landmark variance, eye aspect ratio (EAR) blink metrics,
-    and head pose stability from facial landmarks.
+    Evaluates geometric facial landmark dynamics (fixation stability, blink frequency).
+    Currently, the browser does not transmit raw landmark coordinate arrays.
+    Returns None rather than fabricating landmark measurements.
     """
-    if not frames_or_samples or len(frames_or_samples) == 0:
-        return {
-            "oculomotor_stability_score": 85,
-            "blink_frequency_cpm": 18.5,
-            "head_pose_stability": 92.0,
-            "gaze_fixation_pct": 88.0,
-            "analysis_engine": "MediaPipe Face Landmarker (Calibrated Baseline)"
-        }
+    return None
 
-    # If telemetry points are provided
-    x_coords = [p.get("x", 0) for p in frames_or_samples if isinstance(p, dict)]
-    y_coords = [p.get("y", 0) for p in frames_or_samples if isinstance(p, dict)]
+def analyze_facial_affect(video_metrics: dict | None = None) -> dict | None:
+    """
+    Analyzes expression valence and facial apathy using validated video metrics from Gemini Video AI.
+    Returns None if valid video metrics or FACIAL_AFFECT score is unavailable.
+    """
+    if not video_metrics or not isinstance(video_metrics, dict):
+        return None
+    
+    raw_apathy = video_metrics.get("FACIAL_AFFECT")
+    if raw_apathy is None:
+        return None
 
-    if len(x_coords) > 2:
-        x_std = float(np.std(x_coords))
-        y_std = float(np.std(y_coords))
-        total_dispersion = x_std + y_std
-        oculo_score = max(10, min(100, int(100 - min(80, total_dispersion * 0.15))))
+    try:
+        apathy_val = float(raw_apathy)
+    except (ValueError, TypeError):
+        return None
+
+    # Validate bounds
+    if apathy_val < 0 or apathy_val > 100:
+        return None
+
+    expressivity = round(max(0.0, min(100.0, 100.0 - apathy_val)), 1)
+    
+    # Clinically transparent interpretation without fabricated claims
+    if expressivity >= 60.0:
+        valence = "Engaged / Emotionally Attentive"
+    elif expressivity >= 40.0:
+        valence = "Moderate Facial Responsiveness"
     else:
-        oculo_score = 85
+        valence = "Blunted Affect / Reduced Expressivity"
 
     return {
-        "oculomotor_stability_score": oculo_score,
-        "blink_frequency_cpm": 16.0 + round(float(np.random.uniform(0, 4)), 1),
-        "head_pose_stability": 90.0 + round(float(np.random.uniform(0, 8)), 1),
-        "gaze_fixation_pct": float(oculo_score),
-        "analysis_engine": "MediaPipe Face Landmarker"
+        "expressivity_score": expressivity,
+        "affect_classification": valence,
+        "apathy_index": round(apathy_val, 1),
+        "analysis_engine": "Gemini Video AI",
+        "status": "Available",
+        "data_quality": "Authenticated Session Video"
     }
 
-def analyze_facial_affect_deepface(video_metrics: dict | None = None) -> dict:
-    """
-    Analyzes expression valence, micro-expression intensity, and facial apathy indices
-    using DeepFace facial expression representations.
-    """
-    if video_metrics and "FACIAL_AFFECT" in video_metrics and video_metrics["FACIAL_AFFECT"] is not None:
-        apathy_raw = video_metrics.get("FACIAL_AFFECT", 20)
-        expressivity = max(10, min(100, 100 - apathy_raw))
-    else:
-        expressivity = 76.0
-
-    return {
-        "facial_expressivity_index": float(expressivity),
-        "affect_valence": "Engaged / Emotionally Attentive",
-        "apathy_index": round(100.0 - float(expressivity), 1),
-        "micro_expression_cadence": "Preserved dynamic responsiveness across conversational stimuli",
-        "analysis_engine": "DeepFace Affect Analyzer"
-    }
+# Backward compatibility aliases
+analyze_facial_telemetry_mediapipe = analyze_facial_telemetry
+analyze_facial_affect_deepface = analyze_facial_affect
