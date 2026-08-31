@@ -738,8 +738,19 @@ const AssessmentController = {
       this.startPhase(nextPhaseName);
     }, waitTime);
   },
+  cleanupPhase() {
+    // Clear any lingering global timers from games
+    if (typeof memorySelectionTimerInterval !== 'undefined' && memorySelectionTimerInterval) clearInterval(memorySelectionTimerInterval);
+    if (typeof memoryMemorizeInterval !== 'undefined' && memoryMemorizeInterval) clearInterval(memoryMemorizeInterval);
+    if (typeof reactionWaitTimer !== 'undefined' && reactionWaitTimer) clearTimeout(reactionWaitTimer);
+    if (typeof patternGameState !== 'undefined' && patternGameState.timerInterval) clearInterval(patternGameState.timerInterval);
+    
+    // Stop lingering speech recognition
+    if (typeof stopMemoryVoiceRecognition === 'function') stopMemoryVoiceRecognition();
+  },
   startPhase(phaseName) {
     console.log("[ASSESSMENT] phase:start -> " + phaseName);
+    this.cleanupPhase();
     document.querySelectorAll(".game-container").forEach(el => el.classList.add("hidden"));
 
     switch (phaseName) {
@@ -783,6 +794,16 @@ const AssessmentController = {
         break;
       case "PHASE_GAME_REACTION":
         document.getElementById("game-1-container").classList.remove('hidden');
+        
+        // Reset reaction game state globally to prevent stale trials on retries
+        if (typeof reactionState !== 'undefined') reactionState = "idle";
+        if (typeof reactionTrials !== 'undefined') reactionTrials = [];
+        const rBtn = document.getElementById("reaction-btn");
+        if (rBtn) {
+          rBtn.className = "reaction-box idle";
+          rBtn.textContent = (window.t && typeof window.t === 'function') ? t("reaction_start", State.lang) : "Click here to start Reaction Test";
+        }
+        
         switchView(Views.chat, Views.game);
         break;
       case "PHASE_GAME_CLOCK":
@@ -1652,6 +1673,22 @@ document.getElementById("memory-voice-btn")?.addEventListener("click", () => {
 });
 
 let memoryMemorizeInterval = null;
+
+function updateMemoryCounter() {
+  const numEl = document.getElementById("memory-counter-num");
+  const badgeEl = document.getElementById("memory-counter-badge");
+  if (numEl && State.memoryGame && State.memoryGame.selectedWords) {
+    const count = State.memoryGame.selectedWords.length;
+    numEl.textContent = count;
+    if (badgeEl) {
+      if (count === 5) {
+        badgeEl.classList.add("complete");
+      } else {
+        badgeEl.classList.remove("complete");
+      }
+    }
+  }
+}
 
 function initWorkingMemoryGame() {
   stopMemoryVoiceRecognition();

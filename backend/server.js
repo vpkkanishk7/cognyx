@@ -72,9 +72,16 @@ app.post('/api/predict', authMiddleware, async (req, res) => {
 
     try {
       // Forward the payload to the FastAPI ML microservice
-      const response = await fetch('http://localhost:8000/predict', {
+      // Use ML_SERVICE_URL if provided, else default to localhost:8000
+      const mlBaseUrl = (process.env.ML_SERVICE_URL || 'http://localhost:8000').replace(/\/$/, '');
+      
+      const abortController = new AbortController();
+      const timeout = setTimeout(() => abortController.abort(), 35000); // 35s timeout to allow Render ML service cold start
+      
+      const response = await fetch(`${mlBaseUrl}/predict`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: abortController.signal,
         body: JSON.stringify({
           memory_score: mem,
           pattern_score: pat,
@@ -90,12 +97,14 @@ app.post('/api/predict', authMiddleware, async (req, res) => {
         })
       });
       
+      clearTimeout(timeout);
+      
       if (response.ok) {
         const result = await response.json();
         return res.json(result);
       }
     } catch (svcErr) {
-      console.log('ML Microservice offline, utilizing calibrated analytical engine:', svcErr.message);
+      console.log('ML Microservice offline or timeout, utilizing calibrated analytical engine:', svcErr.message);
     }
     
     // Calibrated Explainable Multimodal Scoring Fallback
