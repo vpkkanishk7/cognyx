@@ -36,7 +36,23 @@ def load_model():
         except Exception as e:
             print(f"Model load warning: {e}")
     else:
-        print(f"Notice: {MODEL_FILE} not found.")
+        # On Render / ephemeral filesystems the .joblib isn't persisted.
+        # Auto-train the model on first startup so the service is always ready.
+        print(f"Notice: {MODEL_FILE} not found — running auto-train now...")
+        try:
+            import subprocess, sys
+            result = subprocess.run(
+                [sys.executable, "train_model.py"],
+                capture_output=True, text=True, timeout=300
+            )
+            print(result.stdout[-3000:] if result.stdout else "(no stdout)")
+            if result.returncode == 0 and os.path.exists(MODEL_FILE):
+                pipeline_bundle = joblib.load(MODEL_FILE)
+                print("Auto-train succeeded. Model loaded.")
+            else:
+                print(f"Auto-train failed (exit {result.returncode}): {result.stderr[-2000:]}")
+        except Exception as e:
+            print(f"Auto-train exception: {e}")
 
     if os.path.exists(METRICS_FILE):
         try:
@@ -45,6 +61,7 @@ def load_model():
             print(f"Loaded verified metrics metadata from {METRICS_FILE}")
         except Exception as e:
             print(f"Metrics metadata load warning: {e}")
+
 
 class MultimodalBiomarkerPayload(BaseModel):
     # Core Cognitive Scores
