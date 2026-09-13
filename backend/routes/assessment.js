@@ -103,7 +103,7 @@ router.post('/analyze-video', authMiddleware, upload.single('video'), async (req
       displayName: "Assessment Video",
     });
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || "gemini-2.5-flash" });
     const result = await model.generateContent({
       contents: [
         { role: 'user', parts: [
@@ -146,7 +146,7 @@ router.post('/analyze-clock', authMiddleware, async (req, res) => {
   const timeout = setTimeout(() => abortController.abort(), 10000);
 
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: process.env.GEMINI_MODEL || "gemini-2.5-flash" });
     const prompt = "Analyze the image. Score it out of 10 based on standard visual rubrics (contour, numbers, hands, time accuracy). If the user drew a rough or messy diagram, DO NOT penalize them heavily as long as it is structurally correct and shows the right time.";
     
     const result = await model.generateContent({
