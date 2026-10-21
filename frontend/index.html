@@ -33,7 +33,7 @@
         <div class="brand-icon">CX</div>
         <div class="brand-title">COGNYX</div>
       </div>
-      <span class="brand-tag">Clinical Engine v2.4</span>
+      <span class="brand-tag">Cognitive Health v2.4</span>
     </div>
 
     <div class="nav-status" style="display: flex; align-items: center; gap: 14px;">
@@ -49,7 +49,7 @@
 
       <div class="system-beacon">
         <span class="beacon-dot"></span>
-        <span id="nav-telemetry-status">Telemetry Active</span>
+        <span id="nav-telemetry-status">System Ready</span>
       </div>
     </div>
   </header>
@@ -68,37 +68,37 @@
 
     <!-- VIEW 1: AUTHENTICATION -->
     <section id="auth-view" class="glass-panel">
-      <div class="index-tag">(01) / Clinical Access</div>
+      <div class="index-tag">(01) / Patient Access</div>
       <h1>COGNYX</h1>
-      <p class="subtitle" id="auth-subtitle">Precision Digital Phenotyping & Cognitive Assessment Engine</p>
+      <p class="subtitle" id="auth-subtitle">Cognitive Health Check-in</p>
 
       <!-- Trust badges -->
       <div style="display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; justify-content: center;">
         <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.15); border-radius: 9999px; font-family: var(--font-mono); font-size: 0.62rem; color: #34d399; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">
-          <i data-feather="shield" style="width: 11px; height: 11px;"></i> Encrypted Session
+          <i data-feather="shield" style="width: 11px; height: 11px;"></i> Secure Session
         </span>
         <span style="display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.15); border-radius: 9999px; font-family: var(--font-mono); font-size: 0.62rem; color: var(--primary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">
-          <i data-feather="cpu" style="width: 11px; height: 11px;"></i> AI-Powered Analysis
+          <i data-feather="cpu" style="width: 11px; height: 11px;"></i> Digital Screening
         </span>
       </div>
 
       <div class="auth-tabs">
-        <button id="toggle-login" class="active">Log In</button>
-        <button id="toggle-signup">Sign Up</button>
+        <button id="toggle-login" class="active">Sign in</button>
+        <button id="toggle-signup">Create Account</button>
       </div>
 
       <div class="input-group">
-        <label for="auth-username">Subject ID or Username</label>
+        <label for="auth-username">Username or patient ID</label>
         <input type="text" id="auth-username" placeholder="e.g. PATIENT_8849" autocomplete="username" />
       </div>
 
       <div class="input-group">
-        <label for="auth-password">Security Credentials</label>
+        <label for="auth-password">Password</label>
         <input type="password" id="auth-password" placeholder="••••••••••••" autocomplete="current-password" />
       </div>
 
       <button id="auth-btn" class="btn-primary" style="margin-top: 12px;">
-        <span>Authenticate Session</span>
+        <span>Sign in</span>
         <i data-feather="arrow-right" style="width: 18px; height: 18px;"></i>
       </button>
 
@@ -109,9 +109,9 @@
 
     <!-- VIEW 2: DASHBOARD -->
     <section id="dashboard-view" class="glass-panel hidden">
-      <div class="index-tag">(02) / Subject Overview</div>
+      <div class="index-tag">(02) / Overview</div>
       <h1>Dashboard</h1>
-      <p class="subtitle">Session authenticated for subject <span id="dash-username"
+      <p class="subtitle">Session ready for user <span id="dash-username"
           style="color: var(--primary); font-weight: 700;"></span>.</p>
 
       <div class="dashboard-grid">
@@ -123,21 +123,21 @@
             </div>
             <i data-feather="activity"
               style="width: 32px; height: 32px; color: var(--primary); margin-bottom: 16px;"></i>
-            <h3>New Assessment</h3>
-            <p>Launch a full digital phenotyping battery including interview, reflex, working memory, geometric patterns, and visuospatial CDT.</p>
+            <h3>Start Assessment</h3>
+            <p>Complete a series of engaging activities: conversation, reaction time, memory, missing shapes, and clock drawing.</p>
           </div>
         </div>
 
         <div class="dash-card" id="btn-latest-report">
           <div>
             <div class="card-index">
-              <span>(02) / PASSPORT</span>
+              <span>(02) / SUMMARY</span>
               <i data-feather="arrow-up-right" class="card-arrow" style="width: 20px; height: 20px;"></i>
             </div>
             <i data-feather="award"
               style="width: 32px; height: 32px; color: var(--primary); margin-bottom: 16px;"></i>
             <h3>View Latest Report</h3>
-            <p>Access your latest completed Cognitive Vitality Passport, domain radar charts, and PDF download.</p>
+            <p>Access your latest completed Cognitive Health Summary, domain charts, and PDF download.</p>
           </div>
         </div>
 
@@ -149,8 +149,8 @@
             </div>
             <i data-feather="file-text"
               style="width: 32px; height: 32px; color: var(--primary); margin-bottom: 16px;"></i>
-            <h3>Track History</h3>
-            <p>Access longitudinal records, historical pattern scores, and multi-session biometric progressions.</p>
+            <h3>View Previous Assessments</h3>
+            <p>Review your assessment history and track cognitive check-in results over time.</p>
           </div>
         </div>
       </div>
@@ -168,9 +168,9 @@
       <div
         style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 28px; flex-wrap: wrap; gap: 16px;">
         <div>
-          <div class="index-tag">(03) / Clinical Archive</div>
+          <div class="index-tag">(03) / Previous Assessments</div>
           <h2>Assessment Records</h2>
-          <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0;">Historical phenotyping telemetry and longitudinal session results.</p>
+          <p style="color: var(--text-secondary); font-size: 0.88rem; margin: 0;">Review your previous cognitive screening results and progress.</p>
         </div>
         <button id="history-back-btn" class="btn-secondary" style="width: auto; padding: 10px 20px;">
           <i data-feather="arrow-left" style="width: 16px; height: 16px;"></i>
@@ -198,10 +198,9 @@
 
     <!-- VIEW 4: MODALITY SELECTION -->
     <section id="modality-view" class="glass-panel report-panel hidden">
-      <div class="index-tag">(04) / Telemetry Setup</div>
-      <h2>Select Assessment Modality</h2>
-      <p class="subtitle">Select the telemetry depth for your digital phenotyping session. Video analysis captures gaze
-        stability, motor tremors, and facial affect.</p>
+      <div class="index-tag">(04) / Device Setup</div>
+      <h2>Prepare Your Device</h2>
+      <p class="subtitle">Choose how you would like to complete your check-in. Enabling camera and microphone provides a richer screening experience.</p>
 
       <div class="modality-grid">
         <div class="dash-card modality-btn" data-mode="text">
@@ -209,25 +208,23 @@
           <i data-feather="message-square"
             style="width: 28px; height: 28px; color: var(--text-secondary); margin-bottom: 14px;"></i>
           <h3>Text Only</h3>
-          <p style="font-size: 0.8rem; margin-top: 6px;">Conversational interview & interactive cognitive test battery.
-          </p>
+          <p style="font-size: 0.8rem; margin-top: 6px;">Type your answers and complete all interactive cognitive tasks.</p>
         </div>
 
         <div class="dash-card modality-btn" data-mode="voice">
           <div class="card-index">(02)</div>
           <i data-feather="mic"
             style="width: 28px; height: 28px; color: var(--text-secondary); margin-bottom: 14px;"></i>
-          <h3>Voice + Text</h3>
-          <p style="font-size: 0.8rem; margin-top: 6px;">Acoustic prosody analysis with speech-to-text interview.</p>
+          <h3>Voice & Text</h3>
+          <p style="font-size: 0.8rem; margin-top: 6px;">Speak your responses using your microphone alongside interactive tasks.</p>
         </div>
 
         <div class="dash-card modality-btn recommended" data-mode="video">
           <span class="modality-pill">Recommended</span>
           <div class="card-index">(03)</div>
           <i data-feather="video" style="width: 28px; height: 28px; color: var(--primary); margin-bottom: 14px;"></i>
-          <h3>Full Video + Voice</h3>
-          <p style="font-size: 0.8rem; margin-top: 6px;">Complete digital phenotyping with WebGazer eye-tracking &
-            affect AI.</p>
+          <h3>Camera, Voice & Text</h3>
+          <p style="font-size: 0.8rem; margin-top: 6px;">Full interactive session with speech, camera tracking, and cognitive activities.</p>
         </div>
       </div>
 
@@ -242,8 +239,8 @@
       <div
         style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid var(--border-subtle);">
         <div>
-          <div class="index-tag">(05) / Phase 1</div>
-          <h2 style="margin: 0; font-size: 1.35rem;">Clinical Diagnostic Interview</h2>
+          <div class="index-tag">(05) / Activity 1</div>
+          <h2 style="margin: 0; font-size: 1.35rem;">Guided Conversation</h2>
         </div>
       </div>
 
@@ -254,8 +251,8 @@
           <span></span><span></span><span></span>
         </div>
         <div class="chat-input-area">
-          <input type="text" id="chat-input" placeholder="Type your response to the clinician..." autocomplete="off" />
-          <button id="mic-btn" class="hidden" title="Voice Input" style="background: transparent; border: 1px solid var(--border-medium); color: var(--text-secondary);">
+          <input type="text" id="chat-input" placeholder="Type your response here..." autocomplete="off" />
+          <button id="mic-btn" class="hidden" title="Speak your answer" style="background: transparent; border: 1px solid var(--border-medium); color: var(--text-secondary);">
             <i data-feather="mic" style="width: 18px; height: 18px;"></i>
           </button>
           <button id="chat-send-btn" title="Send Response">
@@ -300,16 +297,16 @@
 
       <!-- Game 1: Reaction Time -->
       <div id="game-1-container" class="game-container hidden">
-        <div class="index-tag">(06-A) / Biomarker Test 1</div>
-        <h2 id="reaction-test-title">Oculomotor Reflex & Latency</h2>
-        <p class="subtitle" id="reaction-test-desc">Click or tap the box the exact moment it transitions to vibrant green.</p>
+        <div class="index-tag">(06-A) / Activity 2</div>
+        <h2 id="reaction-test-title">Reaction Time Check</h2>
+        <p class="subtitle" id="reaction-test-desc">Wait until the circle turns green, then tap as quickly as you can.</p>
         <div class="activity-intro-box" id="reaction-intro-box">
-          <h3 id="reaction-intro-title">Test Instructions</h3>
-          <p id="reaction-intro-desc">This test measures your sensorimotor response speed and visual reaction latency.</p>
+          <h3 id="reaction-intro-title">Instructions</h3>
+          <p id="reaction-intro-desc">This activity checks how quickly you respond when visual cues change.</p>
           <ul>
-            <li>Click the box once to arm the test.</li>
-            <li>When the color turns <strong>GREEN</strong>, click or tap as quickly as possible.</li>
-            <li>You will complete 3 consecutive trials to establish your median latency.</li>
+            <li>Click or tap the box once to get ready.</li>
+            <li>When the color turns <strong>GREEN</strong>, click or tap as quickly as you can.</li>
+            <li>You will do this 3 times to calculate your average speed.</li>
           </ul>
         </div>
         <div id="reaction-btn" class="reaction-box idle">Click to Start</div>
@@ -317,13 +314,13 @@
 
       <!-- Game 2: Working Memory -->
       <div id="game-2-container" class="game-container hidden">
-        <div class="index-tag">(06-B) / Biomarker Test 2</div>
-        <h2 id="memory-test-title">Working Memory Recall Assessment</h2>
+        <div class="index-tag">(06-B) / Activity 3</div>
+        <h2 id="memory-test-title">Working Memory Activity</h2>
 
         <div id="memory-display-area" style="text-align: center; width: 100%;">
           <div class="activity-intro-box">
-            <h3 id="memory-intro-title">Test Instructions</h3>
-            <p id="memory-test-desc">You will be shown <strong>5 target words</strong> for 7 seconds. Memorize as many as you can, then pick them from a randomized grid.</p>
+            <h3 id="memory-intro-title">Instructions</h3>
+            <p id="memory-test-desc">You will see <strong>5 target words</strong> for 7 seconds. Remember as many as you can, then choose them from the grid.</p>
           </div>
           <p class="subtitle" id="memory-timer-text" style="font-size: 1.15rem; margin: 14px 0 10px 0; color: var(--primary); font-weight: 600;"></p>
           <div id="memory-word-showcase" class="memory-showcase-grid" style="margin: 16px auto 20px auto;"></div>
@@ -363,7 +360,7 @@
           </div>
           <div class="memory-grid" id="memory-grid-container"></div>
           <button id="memory-submit-btn" class="btn-primary" style="margin-top: 28px; width: 100%; max-width: 320px;">
-            <span>Submit Recall Vector</span>
+            <span>Submit Answers</span>
             <i data-feather="check-circle" style="width: 18px; height: 18px;"></i>
           </button>
         </div>
@@ -371,8 +368,8 @@
 
       <!-- Game 3: Visuospatial Clock Drawing -->
       <div id="game-3-container" class="game-container hidden">
-        <div class="index-tag">(06-C) / Biomarker Test 3</div>
-        <h2 id="clock-test-title">Visuospatial Clock Drawing (CDT)</h2>
+        <div class="index-tag">(06-C) / Activity 4</div>
+        <h2 id="clock-test-title">Clock Drawing Activity</h2>
         <p class="subtitle" id="clock-test-desc">Draw the clock face, insert numbers 1–12, and place the hands to indicate
           <strong>11:10</strong>.</p>
         
@@ -385,19 +382,19 @@
         <div style="display: flex; gap: 14px; width: 100%; max-width: 340px; margin-top: 8px;">
           <button id="clock-clear-btn" class="btn-secondary" style="flex: 1;">
             <i data-feather="refresh-cw" style="width: 16px; height: 16px;"></i>
-            <span>Clear Canvas</span>
+            <span>Clear Drawing</span>
           </button>
           <button id="clock-submit-btn" class="btn-primary" style="flex: 2;">
-            <span>Analyze Clock AI</span>
+            <span>Submit Drawing</span>
             <i data-feather="arrow-right" style="width: 16px; height: 16px;"></i>
           </button>
         </div>
       </div>
     <!-- Game 4: Pattern Matching (Upgraded Suite) -->
     <div id="game-4-container" class="game-container hidden">
-      <div class="index-tag">(06-D) / Biomarker Test 4</div>
-      <h2 id="pattern-test-title" style="margin-bottom: 6px;">Matrix & Sequence Pattern Recognition</h2>
-      <p id="pattern-test-desc" class="subtitle" style="margin-bottom: 20px;">Analyze the geometric transformation and select the shape that logically completes the pattern.</p>
+      <div class="index-tag">(06-D) / Activity 5</div>
+      <h2 id="pattern-test-title" style="margin-bottom: 6px;">Find the Missing Shape</h2>
+      <p id="pattern-test-desc" class="subtitle" style="margin-bottom: 20px;">Look at the shapes and choose the one that completes the pattern.</p>
 
       <div class="pattern-wrapper">
         <div class="pattern-meta-bar">
@@ -415,7 +412,7 @@
         </div>
 
         <div class="pattern-stage-card">
-          <p id="pattern-instruction-text" style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; font-family: var(--font-mono); text-align: center;">Identify the sequence rule:</p>
+          <p id="pattern-instruction-text" style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; font-family: var(--font-mono); text-align: center;">Identify the pattern rule:</p>
           <div id="pattern-display" class="pattern-sequence-grid">
             <!-- Patterns inserted dynamically via JS -->
           </div>
@@ -433,9 +430,9 @@
 
     <!-- VIEW 8: PROCESSING -->
     <section id="processing-view" class="glass-panel hidden" style="text-align: left; max-width: 620px; margin: 40px auto; padding: 44px;">
-      <div class="index-tag">(07) / Synthesis Engine</div>
-      <h2 style="margin-top: 4px; font-size: 1.8rem; color: var(--text-main); margin-bottom: 8px;">Preparing Cognitive Report</h2>
-      <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 28px; line-height: 1.55;">Organizing multimodal biomarkers, scoring algorithmic vectors, and synthesizing clinical narrative.</p>
+      <div class="index-tag">(07) / Summary Engine</div>
+      <h2 style="margin-top: 4px; font-size: 1.8rem; color: var(--text-main); margin-bottom: 8px;">Preparing Your Summary</h2>
+      <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 28px; line-height: 1.55;">Thank you. You've completed the activities. We're preparing your summary now.</p>
 
       <!-- Progress bar -->
       <div style="width: 100%; height: 3px; background: var(--border-subtle); border-radius: 9999px; overflow: hidden; margin-bottom: 28px;">
@@ -506,12 +503,12 @@
             <i data-feather="shield" style="width: 36px; height: 36px; color: #0284c7; stroke-width: 2.2px;"></i>
             <div>
               <h1 style="color: #0f172a; margin: 0; font-size: 1.7rem; font-weight: 800; letter-spacing: 0.5px;">COGNYX</h1>
-              <p style="margin: 0; font-size: 0.78rem; color: #64748b; font-weight: 600; font-family: var(--font-mono); text-transform: uppercase;">Digital Cognitive Phenotyping & Wellness Passport</p>
+              <p style="margin: 0; font-size: 0.78rem; color: #64748b; font-weight: 600; font-family: var(--font-mono); text-transform: uppercase;">Cognitive Health Screening Summary</p>
             </div>
           </div>
           <div style="text-align: right; font-family: var(--font-mono); font-size: 0.76rem; color: #475569;">
-            <p style="margin: 0; font-weight: 700; color: #0284c7;">VALIDATED COGNITIVE BATTERY</p>
-            <p style="margin: 2px 0 0 0;">CLINICAL SPECIFICATION v2.4 GA</p>
+            <p style="margin: 0; font-weight: 700; color: #0284c7;">COGNITIVE SCREENING BATTERY</p>
+            <p style="margin: 2px 0 0 0;">SCREENING SPECIFICATION v2.4</p>
           </div>
         </div>
 
@@ -541,20 +538,20 @@
         <!-- HERO OVERALL COGNITIVE SCORE CARD -->
         <div class="pdf-page-break-avoid" style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 1.5px solid #bae6fd; border-radius: 12px; padding: 24px; margin-bottom: 28px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px;">
           <div>
-            <span style="font-size: 0.75rem; font-weight: 700; color: #0369a1; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em;">Composite Cognitive Vitality Index</span>
+            <span style="font-size: 0.75rem; font-weight: 700; color: #0369a1; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em;">Overall Screening Score</span>
             <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 6px;">
               <span id="rep-overall-score" style="font-size: 3.2rem; font-weight: 800; color: #0284c7; line-height: 1; font-family: var(--font-display);">--</span>
               <span style="font-size: 1.3rem; font-weight: 700; color: #64748b;">/ 100</span>
             </div>
             <p id="rep-overall-status-text" style="font-size: 0.88rem; color: #334155; margin: 8px 0 0 0; font-weight: 500;">
-              Dynamic performance tier evaluated against age-adjusted baseline reference ranges.
+              Screening tier evaluated against age-adjusted baseline reference ranges.
             </p>
           </div>
           <div style="text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
             <span id="rep-overall-badge" style="background: #10b981; color: #ffffff; padding: 6px 16px; border-radius: 9999px; font-weight: 700; font-size: 0.88rem; letter-spacing: 0.04em; text-transform: uppercase; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
-              Optimal Cognitive Vitality
+              Optimal Screening Result
             </span>
-            <span style="font-size: 0.78rem; color: #64748b; font-family: var(--font-mono);">Age-Normed Percentile: <strong id="rep-percentile" style="color: #0f172a;">88th</strong></span>
+            <span style="font-size: 0.78rem; color: #64748b; font-family: var(--font-mono);">Age Reference Percentile: <strong id="rep-percentile" style="color: #0f172a;">88th</strong></span>
           </div>
         </div>
 
@@ -1001,9 +998,9 @@
 
         <!-- Footer -->
         <div class="clinical-footer" style="margin-top: 24px; text-align: center; font-family: var(--font-mono); color: #64748b; border-top: 1px solid #e2e8f0; padding-top: 16px;">
-          <p style="font-size: 0.72rem; letter-spacing: 2px; margin-bottom: 8px;">**** OFFICIAL DIGITAL COGNITIVE PASSPORT ****</p>
-          <h4 style="color: #0f172a; margin: 0; font-size: 0.95rem; font-weight: 800;">COGNYX HEALTH SCIENCES</h4>
-          <p style="margin: 3px 0 0 0; font-size: 0.72rem;">Precision Digital Phenotyping & Diagnostic AI Platform</p>
+          <p style="font-size: 0.72rem; letter-spacing: 2px; margin-bottom: 8px;">**** OFFICIAL COGNITIVE HEALTH SUMMARY ****</p>
+          <h4 style="color: #0f172a; margin: 0; font-size: 0.95rem; font-weight: 800;">COGNYX HEALTH SCREENING</h4>
+          <p style="margin: 3px 0 0 0; font-size: 0.72rem;">Digital Cognitive Health Screening & Wellness Platform</p>
         </div>
 
       </div>

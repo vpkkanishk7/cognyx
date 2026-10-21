@@ -36,3 +36,4 @@ ml_service/dementia_model.joblib
 # OS files
 .DS_Store
 Thumbs.db
+scratch/

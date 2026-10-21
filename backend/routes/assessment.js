@@ -256,22 +256,22 @@ router.post('/generate-final-report', authMiddleware, async (req, res) => {
   const langName = activeLang === 'ta' ? 'Tamil' : (activeLang === 'hi' ? 'Hindi' : 'English');
 
   const simulateOfflineReport = () => {
-    const memScore = scores?.memoryScore ?? 80;
-    const patScore = scores?.patternScore ?? 85;
-    const clkScore = scores?.clockScore !== null && scores?.clockScore !== undefined ? scores.clockScore : 8;
+    const memScore = (scores && Number.isFinite(scores.memoryScore)) ? scores.memoryScore : null;
+    const patScore = (scores && Number.isFinite(scores.patternScore)) ? scores.patternScore : null;
+    const clkScore = (scores && Number.isFinite(scores.clockScore)) ? scores.clockScore : null;
     
     let rawJson;
     if (activeLang === 'ta') {
       rawJson = {
         conversational_observations: [
-          "மருத்துவ உரையாடலின் போது நிலையான பேச்சு வேகம் மற்றும் பொருத்தமான வாக்கிய உருவாக்கம் வெளிப்பட்டது.",
+          "அமர்வு உரையாடலின் போது நிலையான பேச்சு வேகம் மற்றும் பொருத்தமான வாக்கிய உருவாக்கம் வெளிப்பட்டது.",
           "சொற்களை நினைவுபடுத்தி பேசுவதில் நிலைத்தன்மையும் தெளிவும் காணப்பட்டது."
         ],
         cognitive_interpretation: [
-          `செயல் நினைவகப் பிரிவில் ${memScore}% துல்லியமான சொல் மீட்பு பதிவு செய்யப்பட்டது.`,
-          `வடிவ முறை சிந்தனை சோதனையில் ${patScore}% துல்லியம் பெறப்பட்டது.`,
-          `கடிகார வரைதல் சோதனையில் ${clkScore}/10 மதிப்பெண் பெறப்பட்டது.`,
-          `பச்சை இலக்கு எதிர்வினை வேகம்: ${greenTargetResponse.classification} (சராசரி: ${greenTargetResponse.medianMs}ms).`
+          memScore !== null ? `செயல் நினைவகப் பிரிவில் ${memScore}% துல்லியமான சொல் மீட்பு பதிவு செய்யப்பட்டது.` : "செயல் நினைவகப் பரிசோதனை முடிவு கிடைக்கவில்லை.",
+          patScore !== null ? `வடிவ முறை சிந்தனை சோதனையில் ${patScore}% துல்லியம் பெறப்பட்டது.` : "வடிவ முறை சிந்தனை முடிவு கிடைக்கவில்லை.",
+          clkScore !== null ? `கடிகார வரைதல் சோதனையில் ${clkScore}/10 மதிப்பெண் பெறப்பட்டது.` : "கடிகார வரைதல் முடிவு கிடைக்கவில்லை.",
+          greenTargetResponse.medianMs ? `பச்சை இலக்கு எதிர்வினை வேகம்: ${greenTargetResponse.classification} (சராசரி: ${greenTargetResponse.medianMs}ms).` : "எதிர்வினை வேகம் பதிவு செய்யப்படவில்லை."
         ],
         face_voice_observations: [
           videoScores && videoScores.FACIAL_AFFECT !== null && videoScores.FACIAL_AFFECT !== undefined
@@ -285,9 +285,9 @@ router.post('/generate-final-report', authMiddleware, async (req, res) => {
           "பேச்சு வேகம் மற்றும் இடைநிறுத்த அளவீடுகள் இயல்பான வரம்பிற்குள் உள்ளன."
         ],
         ml_risk_analysis: [
-          { domain: "அறிவாற்றல் திறன்", indicator: "செயல் நினைவகம்", risk_level: memScore >= 70 ? "Low" : "Moderate", explanation: "நினைவுத்திறன் நல்ல நிலையில் உள்ளது." },
-          { domain: "செயல்முறை சிந்தனை", indicator: "வடிவ முறை பகுப்பாய்வு", risk_level: patScore >= 70 ? "Low" : "Moderate", explanation: "தருக்க சிந்தனை சீராக உள்ளது." },
-          { domain: "செயலாக்க வேகம்", indicator: "எதிர்வினை நேரம்", risk_level: greenTargetResponse.riskLevel, explanation: `எதிர்வினை வேகம் ${greenTargetResponse.classification}.` }
+          { domain: "அறிவாற்றல் திறன்", indicator: "செயல் நினைவகம்", risk_level: memScore !== null ? (memScore >= 70 ? "Low" : "Moderate") : "Unavailable", explanation: memScore !== null ? "நினைவுத்திறன் பதிவு செய்யப்பட்டுள்ளது." : "தரவு கிடைக்கவில்லை." },
+          { domain: "செயல்முறை சிந்தனை", indicator: "வடிவ முறை பகுப்பாய்வு", risk_level: patScore !== null ? (patScore >= 70 ? "Low" : "Moderate") : "Unavailable", explanation: patScore !== null ? "தருக்க சிந்தனை பதிவு செய்யப்பட்டுள்ளது." : "தரவு கிடைக்கவில்லை." },
+          { domain: "செயலாக்க வேகம்", indicator: "எதிர்வினை நேரம்", risk_level: greenTargetResponse.riskLevel || "Unavailable", explanation: greenTargetResponse.classification || "தரவு கிடைக்கவில்லை." }
         ],
         overall_risk_score: safeRiskLevel,
         dementia_screening_probability: probDisplay,
@@ -296,19 +296,19 @@ router.post('/generate-final-report', authMiddleware, async (req, res) => {
           "வழக்கமான உடற்பயிற்சி, சமச்சீரான உணவு மற்றும் போதுமான தூக்கத்தை பராமரிக்கவும்.",
           "நீண்டகால அறிவாற்றல் ஆரோக்கியத்தை கண்காணிக்க அவ்வப்போது பரிசோதனை செய்து கொள்ளுங்கள்."
         ],
-        summary: `${username} க்கான அறிவாற்றல் பரிசோதனையில் டிமென்ஷியா தொடர்புடைய பரிசோதனை நிகழ்தகவு ${probDisplay} (ஆபத்து நிலை: ${safeRiskLevel}) என கணக்கிடப்பட்டுள்ளது.`
+        summary: `${username} க்கான அறிவாற்றல் பரிசோதனையில் பரிசோதனை நிகழ்தகவு ${probDisplay} (நிலை: ${safeRiskLevel}) என பதிவு செய்யப்பட்டுள்ளது.`
       };
     } else if (activeLang === 'hi') {
       rawJson = {
         conversational_observations: [
-          "क्लिनिकल संवाद के दौरान सुसंगत गति और उचित विचार अभिव्यक्ति देखी गई।",
+          "सत्र संवाद के दौरान सुसंगत गति और उचित विचार अभिव्यक्ति देखी गई।",
           "बातचीत के दौरान शब्दों का चयन और प्रवाह सामान्य रहा।"
         ],
         cognitive_interpretation: [
-          `कार्यशील स्मृति परीक्षण में ${memScore}% सटीकता प्राप्त हुई।`,
-          `पैटर्न पहचान परीक्षण में ${patScore}% सटीकता दर्ज की गई।`,
-          `घड़ी निर्माण परीक्षण में ${clkScore}/10 स्कोर प्राप्त हुआ।`,
-          `सेंसरिमोटर प्रतिक्रिया समय: ${greenTargetResponse.classification} (औसत: ${greenTargetResponse.medianMs}ms).`
+          memScore !== null ? `कार्यशील स्मृति परीक्षण में ${memScore}% सटीकता प्राप्त हुई।` : "कार्यशील स्मृति परिणाम उपलब्ध नहीं है।",
+          patScore !== null ? `पैटर्न पहचान परीक्षण में ${patScore}% सटीकता दर्ज की गई।` : "पैटर्न परीक्षण परिणाम उपलब्ध नहीं है।",
+          clkScore !== null ? `घड़ी निर्माण परीक्षण में ${clkScore}/10 स्कोर प्राप्त हुआ।` : "घड़ी निर्माण परिणाम उपलब्ध नहीं है।",
+          greenTargetResponse.medianMs ? `प्रतिक्रिया समय: ${greenTargetResponse.classification} (औसत: ${greenTargetResponse.medianMs}ms).` : "प्रतिक्रिया समय दर्ज नहीं किया गया।"
         ],
         face_voice_observations: [
           videoScores && videoScores.FACIAL_AFFECT !== null && videoScores.FACIAL_AFFECT !== undefined
@@ -322,9 +322,9 @@ router.post('/generate-final-report', authMiddleware, async (req, res) => {
           "बोलने की गति और विराम अंतराल स्वास्थ्य मानकों के अनुरूप हैं।"
         ],
         ml_risk_analysis: [
-          { domain: "संज्ञानात्मक स्वास्थ्य", indicator: "कार्यशील स्मृति", risk_level: memScore >= 70 ? "Low" : "Moderate", explanation: "स्मृति क्षमता सुरक्षित स्तर पर है।" },
-          { domain: "कार्यकारी कार्य", indicator: "पैटर्न पहचान", risk_level: patScore >= 70 ? "Low" : "Moderate", explanation: "तार्किक विश्लेषण संतुलित है।" },
-          { domain: "प्रसंस्करण गति", indicator: "प्रतिक्रिया समय", risk_level: greenTargetResponse.riskLevel, explanation: `प्रतिक्रिया समय ${greenTargetResponse.classification} है।` }
+          { domain: "संज्ञानात्मक स्वास्थ्य", indicator: "कार्यशील स्मृति", risk_level: memScore !== null ? (memScore >= 70 ? "Low" : "Moderate") : "Unavailable", explanation: memScore !== null ? "स्मृति क्षमता दर्ज की गई है।" : "डेटा उपलब्ध नहीं है।" },
+          { domain: "कार्यकारी कार्य", indicator: "पैटर्न पहचान", risk_level: patScore !== null ? (patScore >= 70 ? "Low" : "Moderate") : "Unavailable", explanation: patScore !== null ? "तार्किक विश्लेषण दर्ज किया गया है।" : "डेटा उपलब्ध नहीं है।" },
+          { domain: "प्रसंस्करण गति", indicator: "प्रतिक्रिया समय", risk_level: greenTargetResponse.riskLevel || "Unavailable", explanation: greenTargetResponse.classification || "डेटा उपलब्ध नहीं है।" }
         ],
         overall_risk_score: safeRiskLevel,
         dementia_screening_probability: probDisplay,
@@ -333,24 +333,24 @@ router.post('/generate-final-report', authMiddleware, async (req, res) => {
           "नियमित शारीरिक व्यायाम, संतुलित पोषण और पर्याप्त नींद बनाए रखें।",
           "समय-समय पर स्वास्थ्य मूल्यांकन करवाएं।"
         ],
-        summary: `${username} के लिए संज्ञानात्मक स्क्रीनिंग में डिमेंशिया-संबंधित स्क्रीनिंग संभावना ${probDisplay} (जोखिम स्तर: ${safeRiskLevel}) प्रदर्शित होती है।`
+        summary: `${username} के लिए संज्ञानात्मक स्क्रीनिंग में स्क्रीनिंग परिणाम ${probDisplay} (स्तर: ${safeRiskLevel}) दर्ज किया गया है।`
       };
     } else {
       rawJson = {
         conversational_observations: [
-          "Consistent conversational cadence and appropriate response formulation during clinical dialogue.",
+          "Consistent conversational cadence and appropriate response formulation during dialogue.",
           "Lexical retrieval and thought expression were fluent and coherent throughout."
         ],
         cognitive_interpretation: [
-          `Working memory retention achieved ${memScore}% target recall accuracy.`,
-          `Pattern recognition test completed with ${patScore}% accuracy across multi-stage geometric sequences.`,
-          `Visuospatial clock construction scored ${clkScore}/10 with preserved contour and hand placement.`,
-          `Sensorimotor Green-Target response latency: ${greenTargetResponse.classification} (Median: ${greenTargetResponse.medianMs}ms vs Age ${greenTargetResponse.ageGroup} Prototype Range ${greenTargetResponse.expectedMinMs}–${greenTargetResponse.expectedMaxMs}ms).`
+          memScore !== null ? `Working memory recall achieved ${memScore}% accuracy.` : "Working memory metric unavailable.",
+          patScore !== null ? `Pattern recognition test completed with ${patScore}% accuracy across multi-stage geometric sequences.` : "Pattern reasoning metric unavailable.",
+          clkScore !== null ? `Visuospatial clock construction scored ${clkScore}/10 with contour and hand placement evaluation.` : "Clock construction metric unavailable.",
+          greenTargetResponse.medianMs ? `Sensorimotor Green-Target response latency: ${greenTargetResponse.classification} (Median: ${greenTargetResponse.medianMs}ms vs Age ${greenTargetResponse.ageGroup} range ${greenTargetResponse.expectedMinMs}–${greenTargetResponse.expectedMaxMs}ms).` : "Sensorimotor response latency not measured."
         ],
         face_voice_observations: [
           videoScores && videoScores.FACIAL_AFFECT !== null && videoScores.FACIAL_AFFECT !== undefined
             ? `Video facial affect assessment reflects active emotional responsiveness (Apathy index: ${videoScores.FACIAL_AFFECT}).`
-            : "Facial landmark and emotion tracking was not recorded for this session.",
+            : "Facial landmark and affect tracking was not recorded for this session.",
           videoScores && videoScores.OCULOMOTOR !== null && videoScores.OCULOMOTOR !== undefined
             ? `Oculomotor telemetry stability index measured at ${videoScores.OCULOMOTOR}.`
             : "Direct ocular tracking telemetry was unavailable."
@@ -359,18 +359,18 @@ router.post('/generate-final-report', authMiddleware, async (req, res) => {
           "Communication pacing and interaction latency remained within expected wellness thresholds."
         ],
         ml_risk_analysis: [
-          { domain: "Cognitive Vitality", indicator: "Working Memory & Recall", risk_level: memScore >= 70 ? "Low" : "Moderate", explanation: "Multi-item lexical recall demonstrates active short-term retention." },
-          { domain: "Executive Function", indicator: "Pattern Recognition & Visuospatial", risk_level: patScore >= 70 ? "Low" : "Moderate", explanation: "Geometric rule abstraction and spatial synthesis executed effectively." },
-          { domain: "Processing Speed", indicator: "3-Trial Green-Target Response Latency", risk_level: greenTargetResponse.riskLevel, explanation: `Sensorimotor response latency is ${greenTargetResponse.classification.toLowerCase()} (${greenTargetResponse.medianMs}ms vs ${greenTargetResponse.expectedMinMs}–${greenTargetResponse.expectedMaxMs}ms prototype range for age ${greenTargetResponse.ageGroup}).` }
+          { domain: "Cognitive Vitality", indicator: "Working Memory & Recall", risk_level: memScore !== null ? (memScore >= 70 ? "Low" : "Moderate") : "Unavailable", explanation: memScore !== null ? "Lexical recall demonstrates recorded retention." : "Metric not available." },
+          { domain: "Executive Function", indicator: "Pattern Recognition & Visuospatial", risk_level: patScore !== null ? (patScore >= 70 ? "Low" : "Moderate") : "Unavailable", explanation: patScore !== null ? "Geometric pattern reasoning recorded." : "Metric not available." },
+          { domain: "Processing Speed", indicator: "3-Trial Green-Target Response Latency", risk_level: greenTargetResponse.riskLevel || "Unavailable", explanation: greenTargetResponse.medianMs ? `Sensorimotor response latency is ${greenTargetResponse.classification.toLowerCase()} (${greenTargetResponse.medianMs}ms vs ${greenTargetResponse.expectedMinMs}–${greenTargetResponse.expectedMaxMs}ms prototype range for age ${greenTargetResponse.ageGroup}).` : "Metric not available." }
         ],
         overall_risk_score: safeRiskLevel,
         dementia_screening_probability: probDisplay,
         recommendations: [
-          "Continue engaging in intellectually stimulating activities such as complex puzzle-solving and pattern recognition.",
+          "Continue engaging in intellectually stimulating activities such as puzzles and logic games.",
           "Maintain regular physical exercise, balanced nutrition, and restorative sleep to support cognitive longevity.",
-          "Schedule periodic wellness assessments to track your longitudinal cognitive vitality profile."
+          "Schedule periodic wellness check-ins to monitor longitudinal cognitive health trends."
         ],
-        summary: `Cognitive wellness screening for ${username} indicates a Dementia-Associated Screening Probability of ${probDisplay} (Risk Level: ${safeRiskLevel}). Response times and task accuracies align with healthy adult baseline performance.`
+        summary: `Cognitive health screening for ${username} indicates an Estimated Cognitive Impairment Risk of ${probDisplay} (Screening Level: ${safeRiskLevel}).`
       };
     }
     res.json({ report: rawJson, analysis_source: "fallback" });
@@ -451,14 +451,15 @@ router.post('/save-report', authMiddleware, (req, res) => {
   const { rx, mem, clk, delay, pattern_score, overall_score, diagnosis, confidence, dementia_prob, risk_level, videoScores, videoSummary } = req.body;
   const username = req.user.username;
 
-  const safeRx = (rx !== null && Number.isFinite(rx)) ? rx : 0;
-  const safeMem = (mem !== null && Number.isFinite(mem)) ? mem : 0;
-  const safeClk = (clk !== null && Number.isFinite(clk)) ? clk : 0;
-  const safeDelay = (delay !== null && Number.isFinite(delay)) ? delay : 0;
-  const safePat = (pattern_score !== null && Number.isFinite(pattern_score)) ? pattern_score : 0;
-  const safeOverall = (overall_score !== null && Number.isFinite(overall_score)) ? overall_score : Math.round((safeMem + safePat + safeClk * 10) / 3);
+  const safeRx = (rx !== null && rx !== undefined && Number.isFinite(Number(rx)) && Number(rx) > 0) ? Number(rx) : null;
+  const safeMem = (mem !== null && mem !== undefined && Number.isFinite(Number(mem))) ? Number(mem) : null;
+  const safeClk = (clk !== null && clk !== undefined && Number.isFinite(Number(clk))) ? Number(clk) : null;
+  const safeDelay = (delay !== null && delay !== undefined && Number.isFinite(Number(delay))) ? Number(delay) : null;
+  const safePat = (pattern_score !== null && pattern_score !== undefined && Number.isFinite(Number(pattern_score))) ? Number(pattern_score) : null;
+  const safeOverall = (overall_score !== null && overall_score !== undefined && Number.isFinite(Number(overall_score))) ? Number(overall_score) : null;
   const safeDementiaProb = (dementia_prob !== null && dementia_prob !== undefined && Number.isFinite(Number(dementia_prob))) ? Number(dementia_prob) : null;
-  const safeRiskLevel = risk_level || "Low";
+  const safeRiskLevel = risk_level || "Unavailable";
+  const safeConfidence = (confidence !== null && confidence !== undefined && Number.isFinite(Number(confidence))) ? Number(confidence) : null;
 
   db.get('SELECT id FROM Users WHERE username = ?', [username], (err, user) => {
     if (err || !user) return res.status(404).json({ error: 'User not found' });
@@ -471,12 +472,12 @@ router.post('/save-report', authMiddleware, (req, res) => {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     , [
       user.id, safeRx, safeMem, safeClk, safeDelay, safePat, safeOverall,
-      diagnosis || "Low Cognitive-Risk Screening Result", confidence || 95,
+      diagnosis || "Cognitive Health Screening Summary", safeConfidence,
       safeDementiaProb, safeRiskLevel,
-      videoScores?.OCULOMOTOR ?? 0, 
-      videoScores?.FACIAL_AFFECT ?? 0, 
-      videoScores?.KINEMATIC ?? 0, 
-      videoScores?.LINGUISTIC_ACOUSTIC ?? 0, 
+      videoScores?.OCULOMOTOR ?? null, 
+      videoScores?.FACIAL_AFFECT ?? null, 
+      videoScores?.KINEMATIC ?? null, 
+      videoScores?.LINGUISTIC_ACOUSTIC ?? null, 
       videoSummary || ""
     ], function(err) {
       if (err) {
@@ -495,7 +496,7 @@ router.get('/history', authMiddleware, (req, res) => {
   db.get('SELECT id FROM Users WHERE username = ?', [username], (err, user) => {
     if (err || !user) return res.status(404).json({ error: 'User not found' });
     
-    db.all(`SELECT * FROM Assessments WHERE user_id = ? ORDER BY created_at DESC`, [user.id], (err, rows) => {
+    db.all(`SELECT * FROM Assessments WHERE user_id = ? ORDER BY id DESC`, [user.id], (err, rows) => {
       if (err) return res.status(500).json({ error: 'Failed to fetch history' });
       res.json({ history: rows });
     });

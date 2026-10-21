@@ -28,10 +28,10 @@ const State = {
   dementiaProbability: null,
   dementiaProbabilityPct: null,
   dementiaProbabilityDisplay: "",
-  riskLevel: "Low",
+  riskLevel: null,
   majorCognitiveFactors: [],
   mlDiagnosis: "",
-  mlConfidence: 0,
+  mlConfidence: null,
   mlCode: 0,
   continuousRecording: {
     active: false,
@@ -62,7 +62,7 @@ function applyTranslations(lang = State.lang) {
   };
 
   // Nav Telemetry
-  setTxt("nav-telemetry-status", "Telemetry Active");
+  setTxt("nav-telemetry-status", t("nav_telemetry_status", lang));
 
   // Auth View
   setTxt("auth-title", t("auth_title", lang));
@@ -155,8 +155,10 @@ function applyTranslations(lang = State.lang) {
   setTxt("clock-test-title", t("clock_title", lang));
   setTxt("clock-test-desc", t("clock_desc", lang));
   setTxt("clock-test-instruction", t("clock_desc", lang));
-  setTxt("clock-clear-btn", t("clock_btn_clear", lang));
-  setTxt("clock-submit-btn", t("clock_btn_submit", lang));
+  const clockClearSpan = document.querySelector("#clock-clear-btn span") || document.getElementById("clock-clear-btn");
+  if (clockClearSpan) clockClearSpan.textContent = t("clock_btn_clear", lang);
+  const clockSubmitSpan = document.querySelector("#clock-submit-btn span") || document.getElementById("clock-submit-btn");
+  if (clockSubmitSpan) clockSubmitSpan.textContent = t("clock_btn_submit", lang);
 
   // Game 4: Pattern Reasoning
   setTxt("pattern-test-title", t("pattern_title", lang));
@@ -1050,13 +1052,20 @@ document.getElementById("btn-latest-report")?.addEventListener("click", async ()
     if (data && data.history && data.history.length > 0) {
       const latest = data.history[0];
       
-      const memScore = latest.memory_score || 85;
-      const patScore = latest.pattern_score || 90;
-      const clkScore = latest.clock_score !== null ? latest.clock_score : 8;
-      const rxVal = latest.rx_time || 1200;
-      const diag = latest.diagnosis || "Low Cognitive-Risk Screening Result";
-      const probVal = (latest.dementia_prob !== null && latest.dementia_prob !== undefined) ? latest.dementia_prob : (latest.confidence || 12.4);
-      const riskLvl = latest.risk_level || (probVal < 35 ? "Low" : (probVal <= 55 ? "Moderate" : "Elevated"));
+      const hasMem = Number.isFinite(latest.memory_score);
+      const hasPat = Number.isFinite(latest.pattern_score);
+      const hasClk = Number.isFinite(latest.clock_score);
+      const hasRx = Number.isFinite(latest.rx_time) && latest.rx_time > 0;
+      const hasOverall = Number.isFinite(latest.overall_score);
+      const hasProb = Number.isFinite(latest.dementia_prob);
+
+      const memScore = hasMem ? latest.memory_score : null;
+      const patScore = hasPat ? latest.pattern_score : null;
+      const clkScore = hasClk ? latest.clock_score : null;
+      const rxVal = hasRx ? latest.rx_time : null;
+      const diag = latest.diagnosis || t("rep_header_title", State.lang);
+      const probVal = hasProb ? latest.dementia_prob : null;
+      const riskLvl = latest.risk_level || (hasProb ? (probVal < 35 ? "Low" : (probVal <= 55 ? "Moderate" : "Elevated")) : "Unavailable");
 
       State.mlDiagnosis = diag;
       State.dementiaProbabilityPct = probVal;
@@ -1070,21 +1079,21 @@ document.getElementById("btn-latest-report")?.addEventListener("click", async ()
       setElem("rep-subject-name", State.user.username || "Subject");
       setElem("rep-subject-id", `CX-${latest.id ? String(latest.id).padStart(6, '0') : '000042'}`);
       setElem("rep-subject-date", new Date(latest.created_at || Date.now()).toLocaleDateString());
-      setElem("rep-overall-score", `${latest.overall_score || 88}%`);
-      setElem("rep-matrix-mem", `${memScore}%`);
-      setElem("rep-matrix-pat", `${patScore}%`);
-      setElem("rep-matrix-clock", `${clkScore}/10`);
-      setElem("rep-matrix-rt", `${rxVal} ms`);
+      setElem("rep-overall-score", hasOverall ? `${latest.overall_score}%` : t("metric_unavailable", State.lang));
+      setElem("rep-matrix-mem", hasMem ? `${memScore}%` : t("metric_unavailable", State.lang));
+      setElem("rep-matrix-pat", hasPat ? `${patScore}%` : t("metric_unavailable", State.lang));
+      setElem("rep-matrix-clock", hasClk ? `${clkScore}/10` : t("metric_unavailable", State.lang));
+      setElem("rep-matrix-rt", hasRx ? `${rxVal} ms` : t("metric_unavailable", State.lang));
 
       const probLabel = document.getElementById("rep-ml-probability-label");
       const riskBadge = document.getElementById("rep-ml-risk-badge");
       const diagLabel = document.getElementById("rep-ml-diagnosis-label");
 
-      if (probLabel) probLabel.textContent = `${t("rep_ml_prob_label", State.lang)} ${probVal}%`;
+      if (probLabel) probLabel.textContent = hasProb ? `${t("rep_ml_prob_label", State.lang)} ${probVal}%` : t("rep_ml_prob_unavailable", State.lang);
       if (riskBadge) {
-        const localizedRisk = riskLvl === "Low" ? t("risk_low", State.lang) : (riskLvl === "Moderate" ? t("risk_moderate", State.lang) : t("risk_elevated", State.lang));
+        const localizedRisk = riskLvl === "Low" ? t("risk_low", State.lang) : (riskLvl === "Moderate" ? t("risk_moderate", State.lang) : (riskLvl === "Elevated" ? t("risk_elevated", State.lang) : t("risk_unavailable", State.lang)));
         riskBadge.textContent = localizedRisk;
-        riskBadge.style.color = riskLvl === "Low" ? "#10b981" : (riskLvl === "Moderate" ? "#f59e0b" : "#ef4444");
+        riskBadge.style.color = riskLvl === "Low" ? "#10b981" : (riskLvl === "Moderate" ? "#f59e0b" : (riskLvl === "Elevated" ? "#ef4444" : "#94a3b8"));
       }
       if (diagLabel) diagLabel.textContent = diag;
 
@@ -1092,9 +1101,9 @@ document.getElementById("btn-latest-report")?.addEventListener("click", async ()
         drawCognitiveRadarChart("cognitive-radar-canvas", {
           memory: memScore,
           pattern: patScore,
-          clock: clkScore * 10,
-          reaction: Math.max(10, Math.min(100, Math.round(2000 - rxVal) / 15)),
-          fluency: 85
+          clock: hasClk ? clkScore * 10 : null,
+          reaction: hasRx ? Math.max(10, Math.min(100, Math.round(2000 - rxVal) / 15)) : null,
+          fluency: null
         });
       }
 
@@ -1115,15 +1124,21 @@ document.getElementById("btn-history")?.addEventListener("click", async () => {
     const tbody = document.getElementById("history-tbody");
     if (tbody) {
       if (data && data.history && data.history.length > 0) {
-        tbody.innerHTML = data.history.map(row => `
-          <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
-            <td style="padding: 12px; font-family: var(--font-mono); font-size: 0.8rem;">${new Date(row.created_at).toLocaleString()}</td>
-            <td style="padding: 12px; font-weight: 700; color: var(--primary);">${row.overall_score || 88}%</td>
-            <td style="padding: 12px;">${row.pattern_score || 90}%</td>
-            <td style="padding: 12px;">${row.memory_score || 85}%</td>
-            <td style="padding: 12px;">${row.clock_score !== null ? row.clock_score : 8}/10</td>
-          </tr>
-        `).join("");
+        tbody.innerHTML = data.history.map(row => {
+          const overallStr = Number.isFinite(row.overall_score) ? `${row.overall_score}%` : "--";
+          const patStr = Number.isFinite(row.pattern_score) ? `${row.pattern_score}%` : "--";
+          const memStr = Number.isFinite(row.memory_score) ? `${row.memory_score}%` : "--";
+          const clkStr = Number.isFinite(row.clock_score) ? `${row.clock_score}/10` : "--";
+          return `
+            <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+              <td style="padding: 12px; font-family: var(--font-mono); font-size: 0.8rem;">${new Date(row.created_at).toLocaleString()}</td>
+              <td style="padding: 12px; font-weight: 700; color: var(--primary);">${overallStr}</td>
+              <td style="padding: 12px;">${patStr}</td>
+              <td style="padding: 12px;">${memStr}</td>
+              <td style="padding: 12px;">${clkStr}</td>
+            </tr>
+          `;
+        }).join("");
       } else {
         tbody.innerHTML = `<tr><td colspan="5" style="padding: 24px; text-align: center; color: var(--text-muted);">${t("hist_no_records", State.lang)}</td></tr>`;
       }
@@ -1173,6 +1188,7 @@ document.querySelectorAll(".modality-btn").forEach(btn => {
     };
     State.memoryGame = { targetWords: [], selectedWords: [] };
     State.videoScores = null; State.mlDiagnosis = null; State.mlConfidence = null;
+    State.riskLevel = null; State.dementiaProbability = null; State.dementiaProbabilityPct = null; State.dementiaProbabilityDisplay = "";
     State.gazeTelemetry = []; State.videoSummary = ""; State.sessionVideoUrl = null;
     State.greenTargetResponse = null;
     State.sessionId = "SESS-" + Math.floor(Math.random()*100000);
@@ -1989,11 +2005,12 @@ document.getElementById("clock-submit-btn")?.addEventListener("click", async (e)
       body: JSON.stringify({ image: imgData })
     });
     const data = await res.json();
-    State.biomarkers.clockScore = data.score !== undefined ? data.score : 8;
-    State.biomarkers.clockAnalysis = data.analysis || "";
+    State.biomarkers.clockScore = (data && Number.isFinite(data.score)) ? data.score : null;
+    State.biomarkers.clockAnalysis = (data && data.analysis) ? data.analysis : "";
   } catch (err) {
     console.error("Clock analysis failed", err);
-    State.biomarkers.clockScore = 8;
+    State.biomarkers.clockScore = null;
+    State.biomarkers.clockAnalysis = "Clock analysis unavailable";
   }
 
   AssessmentController.nextPhase();
@@ -2590,7 +2607,9 @@ function drawCognitiveRadarChart(canvasId, scores) {
     const lx = centerX + labelDist * Math.cos(angle);
     const ly = centerY + labelDist * Math.sin(angle);
     ctx.fillStyle = '#334155';
-    ctx.fillText(`${axis.label} (${Math.round(axis.score)}%)`, lx, ly);
+    const isVal = Number.isFinite(axis.score);
+    const scoreStr = isVal ? `${Math.round(axis.score)}%` : t("metric_unavailable", State.lang);
+    ctx.fillText(`${axis.label} (${scoreStr})`, lx, ly);
   });
 
   // 3. Draw Standard Healthy Baseline Norm (75%)
@@ -2614,7 +2633,8 @@ function drawCognitiveRadarChart(canvasId, scores) {
   ctx.beginPath();
   axes.forEach((axis, i) => {
     const angle = i * angleStep - Math.PI / 2;
-    const scoreFraction = Math.max(0.1, Math.min(1.0, axis.score / 100));
+    const isVal = Number.isFinite(axis.score);
+    const scoreFraction = isVal ? Math.max(0.1, Math.min(1.0, axis.score / 100)) : 0.05;
     const r = maxRadius * scoreFraction;
     const x = centerX + r * Math.cos(angle);
     const y = centerY + r * Math.sin(angle);
@@ -2633,14 +2653,15 @@ function drawCognitiveRadarChart(canvasId, scores) {
   // Draw node points
   axes.forEach((axis, i) => {
     const angle = i * angleStep - Math.PI / 2;
-    const scoreFraction = Math.max(0.1, Math.min(1.0, axis.score / 100));
+    const isVal = Number.isFinite(axis.score);
+    const scoreFraction = isVal ? Math.max(0.1, Math.min(1.0, axis.score / 100)) : 0.05;
     const r = maxRadius * scoreFraction;
     const x = centerX + r * Math.cos(angle);
     const y = centerY + r * Math.sin(angle);
 
     ctx.beginPath();
     ctx.arc(x, y, 4.5, 0, Math.PI * 2);
-    ctx.fillStyle = '#0ea5e9';
+    ctx.fillStyle = isVal ? '#0ea5e9' : '#94a3b8';
     ctx.fill();
     ctx.strokeStyle = '#ffffff';
     ctx.lineWidth = 2;
@@ -2652,9 +2673,14 @@ function renderBenchmarkBars(scores) {
   const setBar = (idVal, idFill, scoreVal) => {
     const valEl = document.getElementById(idVal);
     const fillEl = document.getElementById(idFill);
-    const clamped = Math.max(0, Math.min(100, Math.round(scoreVal)));
-    if (valEl) valEl.textContent = `${clamped}%`;
-    if (fillEl) fillEl.style.width = `${clamped}%`;
+    if (Number.isFinite(scoreVal)) {
+      const clamped = Math.max(0, Math.min(100, Math.round(scoreVal)));
+      if (valEl) valEl.textContent = `${clamped}%`;
+      if (fillEl) fillEl.style.width = `${clamped}%`;
+    } else {
+      if (valEl) valEl.textContent = t("metric_unavailable", State.lang);
+      if (fillEl) fillEl.style.width = "0%";
+    }
   };
 
   setBar("bar-val-mem", "bar-fill-mem", scores.memory);
@@ -2712,31 +2738,41 @@ async function buildReport(videoBlob = null) {
   try {
     updateProcessingStep(2); // Biomarker aggregation
 
-    // 1. Calculate Structured Domain Scores
-    const memScore = State.biomarkers.memoryScore !== null ? State.biomarkers.memoryScore : 85;
-    const patScore = State.biomarkers.patternScore !== null ? State.biomarkers.patternScore : 90;
-    const clkRaw = State.biomarkers.clockScore !== null ? State.biomarkers.clockScore : 8.5;
-    const clkPercent = Math.min(100, Math.round(clkRaw * 10));
+    // 1. Calculate Structured Domain Scores without fabricated defaults
+    const hasMem = Number.isFinite(State.biomarkers.memoryScore);
+    const hasPat = Number.isFinite(State.biomarkers.patternScore);
+    const hasClk = Number.isFinite(State.biomarkers.clockScore);
+    
+    const memScore = hasMem ? State.biomarkers.memoryScore : null;
+    const patScore = hasPat ? State.biomarkers.patternScore : null;
+    const clkRaw = hasClk ? State.biomarkers.clockScore : null;
+    const clkPercent = hasClk ? Math.min(100, Math.round(clkRaw * 10)) : null;
     
     const userAge = State.userAge || 68;
     const gtr = State.greenTargetResponse || evaluateGreenTarget(userAge, State.biomarkers.reactionTrials && State.biomarkers.reactionTrials.length ? State.biomarkers.reactionTrials : State.biomarkers.reactionTimeMs);
     State.greenTargetResponse = gtr;
     
-    const rxMs = gtr.medianMs !== null ? gtr.medianMs : 1200;
-    const rxScore = gtr.classification === "Faster than expected" ? 95 : (gtr.classification === "Within COGNYX expected range" ? 85 : (gtr.classification === "Slower than expected" ? 55 : 30));
-    const wpmVal = State.biomarkers.avgTypingWPM || 42;
-    const wpmScore = Math.max(10, Math.min(100, Math.round((wpmVal / 45) * 100)));
+    const hasRt = gtr && Number.isFinite(gtr.medianMs);
+    const rxMs = hasRt ? gtr.medianMs : null;
+    const rxScore = hasRt ? (gtr.classification === "Faster than expected" ? 95 : (gtr.classification === "Within COGNYX expected range" ? 85 : (gtr.classification === "Slower than expected" ? 55 : 30))) : null;
+    
+    const hasWpm = Number.isFinite(State.biomarkers.avgTypingWPM) && State.biomarkers.avgTypingWPM > 0;
+    const wpmVal = hasWpm ? State.biomarkers.avgTypingWPM : null;
+    const wpmScore = hasWpm ? Math.max(10, Math.min(100, Math.round((wpmVal / 45) * 100))) : null;
 
     const ageCategory = gtr.ageGroup || (userAge <= 20 ? "≤20 years" : (userAge <= 50 ? "21–50 years" : (userAge <= 70 ? "51–70 years" : "71–100 years")));
 
-    // Composite Overall Score (0-100)
-    const compositeOverallScore = Math.round(
-      (patScore * 0.25) +
-      (memScore * 0.25) +
-      (clkPercent * 0.25) +
-      (rxScore * 0.15) +
-      (wpmScore * 0.10)
-    );
+    // Composite Overall Score - honest weighting across measured domains only
+    let weightedSum = 0;
+    let totalWeight = 0;
+    if (hasPat) { weightedSum += patScore * 0.25; totalWeight += 0.25; }
+    if (hasMem) { weightedSum += memScore * 0.25; totalWeight += 0.25; }
+    if (hasClk) { weightedSum += clkPercent * 0.25; totalWeight += 0.25; }
+    if (hasRt) { weightedSum += rxScore * 0.15; totalWeight += 0.15; }
+    if (hasWpm) { weightedSum += wpmScore * 0.10; totalWeight += 0.10; }
+
+    const hasSufficientData = totalWeight >= 0.35;
+    const compositeOverallScore = hasSufficientData ? Math.round(weightedSum / totalWeight) : null;
 
     // Calculate Elapsed Session Duration
     const durationSec = Math.max(45, Math.round((performance.now() - (State.assessmentStartTime || (performance.now() - 195000))) / 1000));
@@ -2772,30 +2808,30 @@ async function buildReport(videoBlob = null) {
 
     // Calculate Age-Adjusted Processing Speed Interpretation
     const minExpectedWPM = userAge <= 20 ? 45 : (userAge <= 50 ? 40 : (userAge <= 70 ? 32 : 25));
-    let procInterp = "Within the expected range for your age group";
+    let procInterp = hasWpm ? "Within the expected range for your age group" : t("metric_unavailable", State.lang);
     let procStatusColor = "#10b981";
-    if (wpmVal < minExpectedWPM * 0.75) {
+    if (hasWpm && wpmVal < minExpectedWPM * 0.75) {
       procInterp = "Slower than expected for your age group";
       procStatusColor = "#f59e0b";
     }
 
     // Populate Age Comparison Cards
-    setElem("rep-age-rt-measured", gtr.medianMs !== null ? `${gtr.medianMs} ms` : "--");
+    setElem("rep-age-rt-measured", hasRt ? `${gtr.medianMs} ms` : "--");
     setElem("rep-age-rt-range", `${gtr.expectedMinMs}–${gtr.expectedMaxMs} ms`);
     setElem("rep-age-rt-mean", `${gtr.referenceMedianMs} ms`);
     const rxStatusEl = document.getElementById("rep-age-rt-status");
     if (rxStatusEl) {
-      rxStatusEl.textContent = rxInterp;
-      rxStatusEl.style.color = rxStatusColor;
+      rxStatusEl.textContent = hasRt ? rxInterp : t("metric_unavailable", State.lang);
+      rxStatusEl.style.color = hasRt ? rxStatusColor : "#94a3b8";
     }
 
-    setElem("rep-age-proc-measured", `${wpmVal} WPM`);
+    setElem("rep-age-proc-measured", hasWpm ? `${wpmVal} WPM` : "--");
     setElem("rep-age-proc-range", userAge <= 20 ? "120–180 WPM" : (userAge <= 50 ? "115–170 WPM" : (userAge <= 70 ? "95–150 WPM" : "75–140 WPM")));
     setElem("rep-age-proc-mean", userAge <= 20 ? "150 WPM" : (userAge <= 50 ? "140 WPM" : (userAge <= 70 ? "125 WPM" : "110 WPM")));
     const procStatusEl = document.getElementById("rep-age-proc-status");
     if (procStatusEl) {
       procStatusEl.textContent = procInterp;
-      procStatusEl.style.color = procStatusColor;
+      procStatusEl.style.color = hasWpm ? procStatusColor : "#94a3b8";
     }
 
     if (State.timingData && State.timingData.length > 0) {
@@ -2830,7 +2866,7 @@ async function buildReport(videoBlob = null) {
             <li><strong>Fastest response:</strong> ${fastest !== "Not measured" ? fastest + " seconds" : fastest}</li>
             <li><strong>Slowest response:</strong> ${slowest !== "Not measured" ? slowest + " seconds" : slowest}</li>
             <li><strong>Response-time variability:</strong> ${variance}</li>
-            <li><strong>Number of uncertain/"I don't know" responses:</strong> ${uncertainCount}</li>
+            <li><strong>Number of uncertain responses:</strong> ${uncertainCount}</li>
           </ul>
         `;
       }
@@ -2839,7 +2875,7 @@ async function buildReport(videoBlob = null) {
         tbody.innerHTML = State.timingData.map(r => {
           let refStr = "Data unavailable";
           if (r.timing_classification && r.timing_classification !== "NOT_AVAILABLE") {
-            refStr = "Age Adjusted"; // Simplified reference representation for demo
+            refStr = "Age Adjusted";
           }
           return `
           <tr style="border-bottom: 1px solid #e2e8f0;">
@@ -2857,7 +2893,7 @@ async function buildReport(videoBlob = null) {
 
     // Hydrate Dynamic Performance Tier
     const repOverall = document.getElementById("rep-overall-score");
-    if (repOverall) repOverall.textContent = compositeOverallScore;
+    if (repOverall) repOverall.textContent = compositeOverallScore !== null ? compositeOverallScore : "--";
 
     const repBadge = document.getElementById("rep-overall-badge");
     const repStatusText = document.getElementById("rep-overall-status-text");
@@ -2865,34 +2901,41 @@ async function buildReport(videoBlob = null) {
     const peerBadge = document.getElementById("rep-peer-percentile-badge");
 
     if (repBadge) {
-      if (compositeOverallScore >= 75) {
-        repBadge.textContent = "Optimal Cognitive Vitality";
+      if (compositeOverallScore === null) {
+        repBadge.textContent = t("risk_unavailable", State.lang);
+        repBadge.style.background = "#64748b";
+        if (repStatusText) repStatusText.textContent = t("rep_incomplete_data", State.lang) || "Insufficient assessment data to calculate composite screening score.";
+        if (repPercentile) repPercentile.textContent = "--";
+        if (peerBadge) peerBadge.textContent = t("metric_unavailable", State.lang);
+      } else if (compositeOverallScore >= 75) {
+        repBadge.textContent = t("tier_optimal", State.lang) || "Optimal Cognitive Vitality";
         repBadge.style.background = "#10b981";
         if (repStatusText) repStatusText.textContent = `Performance is in the top tier relative to the ${ageCategory} reference cohort across memory, spatial, and reaction metrics.`;
         if (repPercentile) repPercentile.textContent = `${Math.min(98, compositeOverallScore + 2)}th`;
-        if (peerBadge) peerBadge.textContent = `${Math.min(98, compositeOverallScore + 2)}th Percentile (Optimal Vitality)`;
+        if (peerBadge) peerBadge.textContent = `${Math.min(98, compositeOverallScore + 2)}th Percentile (${t("tier_optimal", State.lang)})`;
       } else if (compositeOverallScore >= 55) {
-        repBadge.textContent = "Preserved Cognitive Function";
+        repBadge.textContent = t("tier_preserved", State.lang) || "Preserved Cognitive Function";
         repBadge.style.background = "#0284c7";
         if (repStatusText) repStatusText.textContent = `Performance is consistent with expected norms for the ${ageCategory} peer group with steady cognitive vitality.`;
         if (repPercentile) repPercentile.textContent = `${compositeOverallScore}th`;
-        if (peerBadge) peerBadge.textContent = `${compositeOverallScore}th Percentile (Preserved Function)`;
+        if (peerBadge) peerBadge.textContent = `${compositeOverallScore}th Percentile (${t("tier_preserved", State.lang)})`;
       } else {
-        repBadge.textContent = "Cognitive Screening Variance";
+        repBadge.textContent = t("tier_variance", State.lang) || "Cognitive Screening Variance";
         repBadge.style.background = "#f59e0b";
         if (repStatusText) repStatusText.textContent = `Performance shows variances compared to the ${ageCategory} baseline; targeted cognitive exercises and periodic monitoring are suggested.`;
         if (repPercentile) repPercentile.textContent = `${Math.max(20, compositeOverallScore - 5)}th`;
-        if (peerBadge) peerBadge.textContent = `${Math.max(20, compositeOverallScore - 5)}th Percentile (Screening Variance)`;
+        if (peerBadge) peerBadge.textContent = `${Math.max(20, compositeOverallScore - 5)}th Percentile (${t("tier_variance", State.lang)})`;
       }
     }
 
     // Hydrate Individual Matrix Results & Age-Calibrated Baselines
-    setElem("rep-matrix-pat", `${patScore}% (${State.biomarkers.patternCorrect || 11}/12)`);
-    setElem("rep-matrix-mem", `${memScore}%`);
-    setElem("rep-matrix-clock", `${clkRaw}/10`);
-    setElem("rep-matrix-rt", gtr.medianMs !== null ? `${gtr.medianMs} ms` : "--");
-    setElem("rep-matrix-wpm", `${wpmVal} WPM`);
-    setElem("rep-matrix-oculo", State.videoScores?.OCULOMOTOR != null ? `${State.videoScores.OCULOMOTOR} Index` : "--");
+    const patDisplay = hasPat ? `${patScore}% (${Number.isFinite(State.biomarkers.patternCorrect) ? State.biomarkers.patternCorrect : 0}/${State.biomarkers.patternTotal || 12})` : t("metric_unavailable", State.lang);
+    setElem("rep-matrix-pat", patDisplay);
+    setElem("rep-matrix-mem", hasMem ? `${memScore}%` : t("metric_unavailable", State.lang));
+    setElem("rep-matrix-clock", hasClk ? `${clkRaw}/10` : t("metric_unavailable", State.lang));
+    setElem("rep-matrix-rt", hasRt ? `${gtr.medianMs} ms` : t("metric_unavailable", State.lang));
+    setElem("rep-matrix-wpm", hasWpm ? `${wpmVal} WPM` : t("metric_unavailable", State.lang));
+    setElem("rep-matrix-oculo", State.videoScores?.OCULOMOTOR != null ? `${State.videoScores.OCULOMOTOR} Index` : t("metric_unavailable", State.lang));
 
     setElem("rep-baseline-pat", userAge <= 20 ? "> 80%" : (userAge <= 50 ? "> 72%" : (userAge <= 70 ? "> 58%" : "> 45%")));
     setElem("rep-baseline-mem", userAge <= 20 ? "> 80%" : (userAge <= 50 ? "> 75%" : (userAge <= 70 ? "> 60%" : "> 50%")));
@@ -2900,15 +2943,15 @@ async function buildReport(videoBlob = null) {
     setElem("rep-baseline-rt", `${gtr.expectedMinMs}–${gtr.expectedMaxMs} ms`);
     setElem("rep-baseline-wpm", userAge <= 20 ? "> 45 WPM" : (userAge <= 50 ? "> 40 WPM" : (userAge <= 70 ? "> 32 WPM" : "> 25 WPM")));
 
-    setElem("rep-tier-pat", patScore >= 75 ? "Optimal" : patScore >= 50 ? "Moderate" : "Needs Focus");
-    setElem("rep-tier-mem", memScore >= 75 ? "Optimal" : memScore >= 50 ? "Moderate" : "Needs Focus");
-    setElem("rep-tier-clock", clkRaw >= 7 ? "Intact" : clkRaw >= 5 ? "Borderline" : "Needs Focus");
-    setElem("rep-tier-rt", gtr.classification);
+    setElem("rep-tier-pat", hasPat ? (patScore >= 75 ? "Optimal" : (patScore >= 50 ? "Moderate" : "Needs Focus")) : t("metric_unavailable", State.lang));
+    setElem("rep-tier-mem", hasMem ? (memScore >= 75 ? "Optimal" : (memScore >= 50 ? "Moderate" : "Needs Focus")) : t("metric_unavailable", State.lang));
+    setElem("rep-tier-clock", hasClk ? (clkRaw >= 7 ? "Intact" : (clkRaw >= 5 ? "Borderline" : "Needs Focus")) : t("metric_unavailable", State.lang));
+    setElem("rep-tier-rt", hasRt ? gtr.classification : t("metric_unavailable", State.lang));
     const tierRtEl = document.getElementById("rep-tier-rt");
-    if (tierRtEl) {
+    if (tierRtEl && hasRt) {
       tierRtEl.style.color = (gtr.classification === "Within COGNYX expected range" || gtr.classification === "Faster than expected") ? "#10b981" : (gtr.classification === "Slower than expected" ? "#f59e0b" : "#ef4444");
     }
-    setElem("rep-tier-wpm", procInterp.includes("Within") ? "Expected" : "Measured");
+    setElem("rep-tier-wpm", hasWpm ? (procInterp.includes("Within") ? "Expected" : "Measured") : t("metric_unavailable", State.lang));
     setElem("rep-tier-oculo", State.videoScores?.OCULOMOTOR != null ? (State.videoScores.OCULOMOTOR >= 70 ? "Stable" : "Moderate") : "N/A");
 
     // Populate Cognitive Strengths & Focus Areas
@@ -3004,12 +3047,12 @@ async function buildReport(videoBlob = null) {
 async function fetchML() {
   try {
     const payload = {
-      memory_score: State.biomarkers.memoryScore || 85,
-      pattern_score: State.biomarkers.patternScore || 88,
-      clock_score: State.biomarkers.clockScore || 8.5,
-      avg_reaction_time_ms: State.greenTargetResponse?.medianMs || State.biomarkers.reactionTimeMs || 1200,
-      reaction_trials: State.biomarkers.reactionTrials && State.biomarkers.reactionTrials.length ? State.biomarkers.reactionTrials : [State.biomarkers.reactionTimeMs || 1200, State.biomarkers.reactionTimeMs || 1200, State.biomarkers.reactionTimeMs || 1200],
-      words_per_minute: State.biomarkers.avgTypingWPM || 125,
+      memory_score: Number.isFinite(State.biomarkers.memoryScore) ? State.biomarkers.memoryScore : null,
+      pattern_score: Number.isFinite(State.biomarkers.patternScore) ? State.biomarkers.patternScore : null,
+      clock_score: Number.isFinite(State.biomarkers.clockScore) ? State.biomarkers.clockScore : null,
+      avg_reaction_time_ms: (State.greenTargetResponse && Number.isFinite(State.greenTargetResponse.medianMs)) ? State.greenTargetResponse.medianMs : (Number.isFinite(State.biomarkers.reactionTimeMs) ? State.biomarkers.reactionTimeMs : null),
+      reaction_trials: State.biomarkers.reactionTrials && State.biomarkers.reactionTrials.length ? State.biomarkers.reactionTrials : null,
+      words_per_minute: (Number.isFinite(State.biomarkers.avgTypingWPM) && State.biomarkers.avgTypingWPM > 0) ? State.biomarkers.avgTypingWPM : null,
       age: State.userAge || 65,
       facial_apathy_score: State.videoScores && State.videoScores.FACIAL_AFFECT !== undefined ? State.videoScores.FACIAL_AFFECT : null,
       gaze_smoothness: State.videoScores && State.videoScores.KINEMATIC !== undefined ? (100 - State.videoScores.KINEMATIC) : null
@@ -3021,12 +3064,12 @@ async function fetchML() {
     });
     const data = await res.json();
     if (data) {
-      State.mlDiagnosis = data.screeningResult || data.diagnosis || "Low Cognitive-Risk Screening Result";
+      State.mlDiagnosis = data.screeningResult || data.diagnosis || t("rep_header_title", State.lang);
       State.dementiaProbability = data.dementiaProbability !== undefined ? data.dementiaProbability : null;
       State.dementiaProbabilityPct = data.dementiaProbabilityPct !== undefined ? data.dementiaProbabilityPct : null;
       State.dementiaProbabilityDisplay = data.dementiaProbabilityDisplay || "";
-      State.riskLevel = data.riskLevel || "Low";
-      State.mlConfidence = data.confidence || 0;
+      State.riskLevel = data.riskLevel || (data.dementiaProbabilityPct !== null ? (data.dementiaProbabilityPct < 35 ? "Low" : (data.dementiaProbabilityPct <= 55 ? "Moderate" : "Elevated")) : "Unavailable");
+      State.mlConfidence = data.confidence !== undefined ? data.confidence : null;
       State.mlCode = data.prediction_code || 0;
       State.majorCognitiveFactors = data.majorCognitiveFactors || data.explainable_factors || [];
 
@@ -3080,7 +3123,7 @@ async function fetchML() {
           ? t("risk_low", State.lang) 
           : (State.riskLevel === "Moderate" ? t("risk_moderate", State.lang) : (State.riskLevel === "Elevated" ? t("risk_elevated", State.lang) : t("risk_unavailable", State.lang)));
         riskBadge.textContent = localizedRisk;
-        riskBadge.style.color = State.riskLevel === "Low" ? "#10b981" : (State.riskLevel === "Moderate" ? "#f59e0b" : "#ef4444");
+        riskBadge.style.color = State.riskLevel === "Low" ? "#10b981" : (State.riskLevel === "Moderate" ? "#f59e0b" : (State.riskLevel === "Elevated" ? "#ef4444" : "#94a3b8"));
       }
 
       if (diagLabel) {
@@ -3100,7 +3143,8 @@ async function fetchML() {
       if (ageBandEl) ageBandEl.textContent = ageCategory;
 
       if (peerPercentileEl) {
-        peerPercentileEl.textContent = `${data.age_norm_analysis?.avg_percentile || 88}th Percentile (${data.risk_tier || "Age Adjusted"})`;
+        const perc = data.age_norm_analysis?.avg_percentile;
+        peerPercentileEl.textContent = perc !== null && perc !== undefined ? `${perc}th Percentile (${data.risk_tier || "Age Adjusted"})` : t("metric_unavailable", State.lang);
       }
 
       // Populate Facial Analytics (Video AI & Telemetry)
@@ -3116,10 +3160,10 @@ async function fetchML() {
         if (expressEl) expressEl.textContent = fa.affect_classification || "Data Unavailable";
         if (apathyEl) apathyEl.textContent = fa.apathy_index != null ? `Apathy Index: ${fa.apathy_index} (Expressivity: ${fa.expressivity_score}%)` : "Facial apathy index unavailable — insufficient validated facial data";
       } else {
-        if (oculoEl) oculoEl.textContent = State.videoScores?.OCULOMOTOR != null ? `${State.videoScores.OCULOMOTOR}% (Oculomotor Stability)` : "85% (Preserved Fixation)";
-        if (blinkEl) blinkEl.textContent = "18.5 CPM (Typical Baseline)";
-        if (expressEl) expressEl.textContent = "Engaged / Emotionally Attentive";
-        if (apathyEl) apathyEl.textContent = "Low / Normal (10)";
+        if (oculoEl) oculoEl.textContent = State.videoScores?.OCULOMOTOR != null ? `${State.videoScores.OCULOMOTOR}% (Oculomotor Stability)` : t("metric_unavailable", State.lang);
+        if (blinkEl) blinkEl.textContent = t("metric_unavailable", State.lang);
+        if (expressEl) expressEl.textContent = t("metric_unavailable", State.lang);
+        if (apathyEl) apathyEl.textContent = t("metric_unavailable", State.lang);
       }
 
       // Populate Voice & Acoustic Analytics (Librosa & SpeechBrain)
@@ -3134,10 +3178,10 @@ async function fetchML() {
         if (pauseEl) pauseEl.textContent = `${data.voice_analytics.speech_pause_ratio} (Standard Lexical Latency)`;
         if (cadenceEl) cadenceEl.textContent = "Natural intonation & inflection";
       } else {
-        if (wpmEl) wpmEl.textContent = "125 WPM (Fluent Pacing)";
-        if (pitchEl) pitchEl.textContent = "78.8% (Stable Modulation)";
-        if (pauseEl) pauseEl.textContent = "0.31 (Standard Lexical Latency)";
-        if (cadenceEl) cadenceEl.textContent = "Natural intonation & inflection";
+        if (wpmEl) wpmEl.textContent = t("metric_unavailable", State.lang);
+        if (pitchEl) pitchEl.textContent = t("metric_unavailable", State.lang);
+        if (pauseEl) pauseEl.textContent = t("metric_unavailable", State.lang);
+        if (cadenceEl) cadenceEl.textContent = t("metric_unavailable", State.lang);
       }
 
       // Populate Explainable Contributing Factors Breakdown
@@ -3148,10 +3192,10 @@ async function fetchML() {
           <div style="background: #ffffff; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-weight: 600;">
               <span style="color: #0f172a;">${f.factor_name} (Weight: ${f.contribution_weight_pct}%)</span>
-              <span style="color: ${f.status === 'Optimal' || f.status === 'Standard Cadence' || f.status === 'Attentive Engagement' ? '#10b981' : '#f59e0b'}; font-size: 0.78rem; font-family: var(--font-mono);">${f.status} • Score: ${f.measured_score}%</span>
+              <span style="color: ${f.status === 'Optimal' || f.status === 'Standard Cadence' || f.status === 'Attentive Engagement' ? '#10b981' : '#f59e0b'}; font-size: 0.78rem; font-family: var(--font-mono);">${f.status} • Score: ${f.measured_score !== null ? f.measured_score + '%' : t("metric_unavailable", State.lang)}</span>
             </div>
             <div style="width: 100%; height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden;">
-              <div style="width: ${Math.min(100, Math.max(10, f.measured_score))}%; height: 100%; background: #0284c7; border-radius: 3px;"></div>
+              <div style="width: ${f.measured_score !== null ? Math.min(100, Math.max(10, f.measured_score)) : 0}%; height: 100%; background: #0284c7; border-radius: 3px;"></div>
             </div>
           </div>
         `).join('');
@@ -3159,11 +3203,11 @@ async function fetchML() {
     }
   } catch (err) {
     console.warn("ML pipeline fallback:", err.message);
-    State.mlDiagnosis = "Low Cognitive-Risk Screening Result";
+    State.mlDiagnosis = t("rep_ml_diag_unavailable", State.lang) || "Reliable screening probability unavailable.";
     State.dementiaProbability = null;
     State.dementiaProbabilityPct = null;
-    State.riskLevel = "Low";
-    State.mlConfidence = 0;
+    State.riskLevel = "Unavailable";
+    State.mlConfidence = null;
     State.mlCode = 0;
   }
 }
@@ -3305,22 +3349,26 @@ async function generateFinalSynthesis() {
   }
 }
 
-async function saveFinalReport(compositeOverall = 88) {
+async function saveFinalReport(compositeOverall = null) {
   try {
+    const rxVal = (State.greenTargetResponse && Number.isFinite(State.greenTargetResponse.medianMs))
+      ? State.greenTargetResponse.medianMs
+      : (Number.isFinite(State.biomarkers.reactionTimeMs) ? State.biomarkers.reactionTimeMs : null);
+
     await apiFetch('/save-report', {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        rx: State.greenTargetResponse?.medianMs || State.biomarkers.reactionTimeMs || 1200,
-        mem: State.biomarkers.memoryScore || 85,
-        clk: State.biomarkers.clockScore !== null ? State.biomarkers.clockScore : 8,
-        delay: State.biomarkers.delayedRecallScore !== null ? State.biomarkers.delayedRecallScore : 3,
-        pattern_score: State.biomarkers.patternScore !== null ? State.biomarkers.patternScore : 90,
-        overall_score: compositeOverall,
-        diagnosis: State.mlDiagnosis || "Low Cognitive-Risk Screening Result",
-        confidence: State.mlConfidence || 95,
+        rx: rxVal,
+        mem: Number.isFinite(State.biomarkers.memoryScore) ? State.biomarkers.memoryScore : null,
+        clk: Number.isFinite(State.biomarkers.clockScore) ? State.biomarkers.clockScore : null,
+        delay: Number.isFinite(State.biomarkers.delayedRecallScore) ? State.biomarkers.delayedRecallScore : null,
+        pattern_score: Number.isFinite(State.biomarkers.patternScore) ? State.biomarkers.patternScore : null,
+        overall_score: Number.isFinite(compositeOverall) ? compositeOverall : null,
+        diagnosis: State.mlDiagnosis || t("rep_header_title", State.lang) || "Cognitive Health Screening Summary",
+        confidence: Number.isFinite(State.mlConfidence) ? State.mlConfidence : null,
         dementia_prob: State.dementiaProbabilityPct,
-        risk_level: State.riskLevel,
+        risk_level: State.riskLevel || "Unavailable",
         videoScores: State.videoScores || {},
         videoSummary: State.videoSummary || ""
       })
@@ -3559,13 +3607,14 @@ document.getElementById("download-pdf-btn")?.addEventListener("click", async fun
       // Re-draw radar chart with saved data
       if (typeof drawCognitiveRadarChart === "function" && State.biomarkers) {
         const gtr = State.greenTargetResponse || evaluateGreenTarget(State.userAge, State.biomarkers.reactionTrials && State.biomarkers.reactionTrials.length ? State.biomarkers.reactionTrials : State.biomarkers.reactionTimeMs);
-        const rxScore = gtr.classification === "Faster than expected" ? 95 : (gtr.classification === "Within COGNYX expected range" ? 85 : (gtr.classification === "Slower than expected" ? 55 : 30));
+        const hasRt = gtr && Number.isFinite(gtr.medianMs);
+        const rxScore = hasRt ? (gtr.classification === "Faster than expected" ? 95 : (gtr.classification === "Within COGNYX expected range" ? 85 : (gtr.classification === "Slower than expected" ? 55 : 30))) : null;
         const rd = {
-          memory: State.biomarkers.memoryScore || 85,
-          pattern: State.biomarkers.patternScore || 90,
-          clock: State.biomarkers.clockScore !== null ? (State.biomarkers.clockScore / 10) * 100 : 85,
+          memory: Number.isFinite(State.biomarkers.memoryScore) ? State.biomarkers.memoryScore : null,
+          pattern: Number.isFinite(State.biomarkers.patternScore) ? State.biomarkers.patternScore : null,
+          clock: Number.isFinite(State.biomarkers.clockScore) ? (State.biomarkers.clockScore / 10) * 100 : null,
           reaction: rxScore,
-          fluency: State.biomarkers.avgTypingWPM || 120
+          fluency: (Number.isFinite(State.biomarkers.avgTypingWPM) && State.biomarkers.avgTypingWPM > 0) ? Math.max(10, Math.min(100, Math.round((State.biomarkers.avgTypingWPM / 45) * 100))) : null
         };
         drawCognitiveRadarChart("cognitive-radar-canvas", rd);
       }
