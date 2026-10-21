@@ -435,6 +435,9 @@ IMPORTANT GUIDELINES:
     if (!rawJson || typeof rawJson !== 'object') {
       simulateOfflineReport();
     } else {
+      if (!rawJson.summary) {
+        rawJson.summary = rawJson.executive_summary || rawJson.clinical_summary || rawJson.overview || rawJson.report?.summary || `Cognitive wellness screening for ${username} indicates a Dementia-Associated Screening Probability of ${probDisplay} (Risk Level: ${safeRiskLevel}).`;
+      }
       res.json({ report: rawJson, analysis_source: "groq" });
     }
   } catch (err) {

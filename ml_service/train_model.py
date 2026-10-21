@@ -23,18 +23,26 @@ from sklearn.inspection import permutation_importance
 from sklearn.calibration import CalibratedClassifierCV
 
 # Define paths
-BASE_DATA_DIR = r"f:\dem-evol\COGNYX\dataset"
+ML_DIR = os.path.dirname(os.path.abspath(__file__))
+REPO_ROOT = os.path.abspath(os.path.join(ML_DIR, ".."))
+
+possible_data_dirs = [
+    os.path.join(REPO_ROOT, "dataset"),
+    os.path.join(ML_DIR, "dataset"),
+    r"f:\dem-evol\COGNYX\dataset",
+    os.path.join(REPO_ROOT, "..", "dataset")
+]
+BASE_DATA_DIR = next((d for d in possible_data_dirs if os.path.exists(d)), os.path.join(REPO_ROOT, "dataset"))
 OPTIMAL_CSV = os.path.join(BASE_DATA_DIR, "OPTIMAL_combined_3studies_6feb2020-selected-columns.csv")
 
-ML_DIR = r"f:\dem-evol\COGNYX\COGNYX\ml_service"
 ARTIFACTS_DIR = os.path.join(ML_DIR, "ml_artifacts")
-ROOT_ARTIFACTS_DIR = r"f:\dem-evol\COGNYX\COGNYX\ml_artifacts"
+ROOT_ARTIFACTS_DIR = os.path.join(REPO_ROOT, "ml_artifacts")
 
 os.makedirs(ARTIFACTS_DIR, exist_ok=True)
 os.makedirs(ROOT_ARTIFACTS_DIR, exist_ok=True)
 
 MODEL_SAVE_PATH = os.path.join(ML_DIR, "dementia_model.joblib")
-ROOT_MODEL_SAVE_PATH = r"f:\dem-evol\COGNYX\COGNYX\dementia_model.joblib"
+ROOT_MODEL_SAVE_PATH = os.path.join(REPO_ROOT, "dementia_model.joblib")
 
 def load_and_split_data():
     print("--- 1. Loading Dataset 3 (OPTIMAL) ---")

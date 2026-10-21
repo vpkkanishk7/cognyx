@@ -20,8 +20,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-MODEL_FILE = 'dementia_model.joblib'
-METRICS_FILE = os.path.join('ml_artifacts', 'metrics.json')
+ML_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_FILE = os.path.join(ML_DIR, 'dementia_model.joblib')
+METRICS_FILE = os.path.join(ML_DIR, 'ml_artifacts', 'metrics.json')
 
 pipeline_bundle = None
 metrics_metadata = {}
@@ -41,8 +42,10 @@ def load_model():
         print(f"Notice: {MODEL_FILE} not found — running auto-train now...")
         try:
             import subprocess, sys
+            train_script = os.path.join(ML_DIR, "train_model.py")
             result = subprocess.run(
-                [sys.executable, "train_model.py"],
+                [sys.executable, train_script],
+                cwd=ML_DIR,
                 capture_output=True, text=True, timeout=300
             )
             print(result.stdout[-3000:] if result.stdout else "(no stdout)")

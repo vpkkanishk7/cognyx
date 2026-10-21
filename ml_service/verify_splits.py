@@ -3,7 +3,14 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import GroupShuffleSplit
 
-base_dir = r"f:\dem-evol\COGNYX\dataset"
+_curr_dir = os.path.dirname(os.path.abspath(__file__))
+_repo_dir = os.path.abspath(os.path.join(_curr_dir, ".."))
+possible_dirs = [
+    os.path.join(_repo_dir, "dataset"),
+    os.path.join(_curr_dir, "dataset"),
+    r"f:\dem-evol\COGNYX\dataset"
+]
+base_dir = next((d for d in possible_dirs if os.path.exists(d)), os.path.join(_repo_dir, "dataset"))
 d3_path = os.path.join(base_dir, "OPTIMAL_combined_3studies_6feb2020-selected-columns.csv")
 
 df3 = pd.read_csv(d3_path, na_values=['NA', 'NaN', ''])
